@@ -23,6 +23,7 @@ ev3.screen.set_font(font)
 
 sensorL = ColorSensor(Port.S1)
 sensorR = ColorSensor(Port.S4)
+ultrasonic = UltrasonicSensor(Port.S2)
 motorL = Motor(Port.D )
 motorL.dc(100)
 
@@ -33,11 +34,12 @@ robot = DriveBase(motorL, motorR, wheel_diameter=55.5, axle_track=104)
 
 
 class Vehicle:
-    def __init__(self, sensorL, sensorR, robot, motorL = None, motorR = None, hub = None):
+    def __init__(self, sensorL, sensorR, robot, motorL = None, motorR = None, hub = None, ultrasonic = None):
         self.sensorL = sensorL;
         self.sensorR = sensorR;
         self.robot = robot;
         self.hub = hub;
+        self.ultraSonic = ultrasonic;
         self.screen = hub.screen;
         self.motorL = motorL;
         self.motorR = motorR;
@@ -162,7 +164,20 @@ class Vehicle:
     def driveStraight(self):
         while True:
             self.robot.drive(100,0)
-    
+            
+    def detectObstacle(self):
+        dist = self.ultraSonic.distance()
+        return dist
+        
+    def switchLane(self):
+        self.robot.turn(-90)
+        self.robot.drive(200,0)
+        wait(1000)
+        self.robot.turn(90)
+        self.robot.drive(100,0)
+        wait(750)
+        
+        
     def drive(self):
         timer = 0
         max_speed = 200        # Maximum speed
@@ -177,7 +192,7 @@ class Vehicle:
         sharp_turn = 85
         left_turns = 0
         drift = -4
-    
+        
         stopped_at_blue = False
         at_crossing = False   
         changed_lanes = False    
@@ -192,10 +207,12 @@ class Vehicle:
         
         self.hub.speaker.beep()
         while True:
+            objectClose = (self.detectObstacle() < 500)
             frame += 1
             # Get the color from the sensors
             color = self._getClosestColor()
-            
+            if objectClose:
+                self.switchLane()
             
             # Check if either side is white or green (road edges)
             left_white = (color[0] == "white" or color[0] == "green")
@@ -265,7 +282,7 @@ class Vehicle:
                 turning_angle = drift if side_weight[0] < side_weight[1] else 0
                 if speed < max_speed:
                     speed += accel  # Gradually increase speed
-            print(color, speed, turning_angle)
+            # print(color, speed, turning_angle)
             if frame % 10 == 0:
                 lane = "left lane" if side_weight[0] > side_weight[1] else "right lane"
                 blue = "blue" if color[0] == "blue" or color[1] == "blue" else "not blue"
@@ -305,7 +322,7 @@ class Vehicle:
         
 
 
-car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3)
+car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic)
 # car.calibrate()
 car.loadCalibratedData()
 car.drive()
