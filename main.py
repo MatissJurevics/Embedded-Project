@@ -46,6 +46,24 @@ class Vehicle:
         self.lows = {"left": [100,100,100], "right": [100,100,100]}
         self.highs = {"left": [0,0,0], "right": [0,0,0]}
         self.mappedColors = {}
+        # Values used in the driving stage
+        # -------------------------------
+        # Add values here to adjust the driving behavior between functions
+        self.min_speed = 100
+        self.max_speed = 200
+        self.accel = 5
+        self.turning_angle = 0
+        self.speed = 0
+        self.frame = 0
+        self.speed = self.min_speed
+        self.blue_frames = 0
+        self.side_weight = [0,0]
+        self.soft_turn = 30
+        self.sharp_turn = 85
+        self.left_turns = 0
+        self.drift = -4
+        
+        
     
     def _waitForClick(self):
         """
@@ -179,19 +197,7 @@ class Vehicle:
         
         
     def drive(self):
-        timer = 0
-        max_speed = 200        # Maximum speed
-        min_speed = 100        # Minimum speed (for turning)
-        accel = 5    # Acceleration rate
-        speed = min_speed     # Initial speed
-        turning_angle = 0     # Initial turning angle
-        frame = 0
-        blue_frames = 0
-        side_weight = [0,0]
-        soft_turn = 30
-        sharp_turn = 85
-        left_turns = 0
-        drift = -4
+        timer = 0        
         
         stopped_at_blue = False
         at_crossing = False   
@@ -207,8 +213,9 @@ class Vehicle:
         
         self.hub.speaker.beep()
         while True:
-            objectClose = (self.detectObstacle() < 500)
-            frame += 1
+            objectDistance = self.detectObstacle()
+            objectClose = (objectDistance < 500)
+            self.frame += 1
             # Get the color from the sensors
             color = self._getClosestColor()
             if objectClose:
@@ -237,7 +244,7 @@ class Vehicle:
                         self.robot.turn(90)
                         self.robot.drive(100,0)
                         wait(750)
-                        speed = min_speed
+                        self.speed = self.min_speed
                         side_weight = [0,1000000]
                     else:
                         self.robot.turn(90)
@@ -246,7 +253,7 @@ class Vehicle:
                         self.robot.turn(-70)
                         self.robot.drive(100,0)
                         wait(750)
-                        speed = min_speed
+                        self.speed = self.min_speed
                         side_weight = [1000000,0]
                     
             
@@ -255,64 +262,64 @@ class Vehicle:
             # If road edge is detected on the left, turn right and slow down
             if left_white and not at_crossing:
                 if color[0] == "green":
-                    side_weight[0] += 1
-                    left_turns += 1
+                    self.side_weight[0] += 1
+                    self.left_turns += 1
                 else:
                     side_weight[0] -= 1
-                turning_angle = -soft_turn if side_weight[0] > side_weight[1] else -sharp_turn
-                turning_angle += 20 if left_turns > 5 else 0
-                speed -= accel * 10
+                self.turning_angle = -self.soft_turn if self.side_weight[0] > self.side_weight[1] else -self.sharp_turn
+                self.turning_angle += 20 if self.left_turns > 5 else 0
+                self.speed -= self.accel * 10
                 
-                if speed < min_speed:
-                    speed = min_speed  # Slow down for turning
+                if self.speed < self.min_speed:
+                    self.speed = self.min_speed  # Slow down for turning
                     
             # If road edge is detected on the right, turn left and slow down
             elif right_white and not at_crossing:
                 if color[1] == "green":
-                    side_weight[1] += 1
+                    self.side_weight[1] += 1
                 else:
-                    side_weight[1] -= 1
-                left_turns = 0
-                turning_angle = soft_turn
-                speed -= accel * 10
-                if speed < min_speed:
-                    speed = min_speed  # Slow down for turning
+                    self.side_weight[1] -= 1
+                self.left_turns = 0
+                self.turning_angle = self.soft_turn
+                self.speed -= self.accel * 10
+                if self.speed < self.min_speed:
+                    self.speed = self.min_speed  # Slow down for turning
             # If no road edge detected, drive straight and accelerate
             else:
-                turning_angle = drift if side_weight[0] < side_weight[1] else 0
-                if speed < max_speed:
-                    speed += accel  # Gradually increase speed
+                self.turning_angle = self.drift if self.side_weight[0] < self.side_weight[1] else 0
+                if self.speed < self.max_speed:
+                    self.speed += self.accel  # Gradually increase speed
             # print(color, speed, turning_angle)
-            if frame % 10 == 0:
-                lane = "left lane" if side_weight[0] > side_weight[1] else "right lane"
+            if self.frame % 10 == 0:
+                lane = "left lane" if  self.side_weight[0] > self.side_weight[1] else "right lane"
                 blue = "blue" if color[0] == "blue" or color[1] == "blue" else "not blue"
                 self.screen.clear()
                 self.screen.draw_text(0, 20, str("L:{}  R:{} CL:{}  CR:{}".format(color[0], color[1], color[2][0], color[2][1])))
-                self.screen.draw_text(0, 40, str(speed))
-                self.screen.draw_text(0, 60, str(turning_angle))
-                self.screen.draw_text(0, 80, "{lane}: {side_weight}".format(lane=lane, side_weight=side_weight))
-                self.screen.draw_text(0, 100, str(blue))
+                self.screen.draw_text(0, 40, str(self.speed))
+                self.screen.draw_text(0, 60, str(self.turning_angle))
+                self.screen.draw_text(0, 80, "{lane}: {side_weight}".format(lane=lane, side_weight=self.side_weight))
+                self.screen.draw_text(0, 100, str(objectDistance))
             # Drive the robot with the calculated speed and turning angle
             if (color[0] == "yellow" or color[1] == "yellow") and not at_crossing:
                 at_crossing = True
                 self.robot.drive(75,0)
                 wait(2300)
-                speed = min_speed
+                self.speed = self.min_speed
                 at_crossing = False
                 
             if (color[0] == "blue" and color[1] == "blue"):
-                print("blue found", blue_frames)
-                blue_frames += 1
-                if blue_frames > 1:
+                print("blue found", self.blue_frames)
+                self.blue_frames += 1
+                if self.blue_frames > 1:
                     self.robot.stop()
                     wait(3000)
                     self.robot.drive(100,0)
                     wait(300)
-                    speed = min_speed
-                    blue_frames = 0
+                    self.speed = self.min_speed
+                    self.blue_frames = 0
             else:
-                blue_frames = 0
-            self.robot.drive(speed, turning_angle)
+                self.blue_frames = 0
+            self.robot.drive(self.speed, self.turning_angle)
            
 
         
