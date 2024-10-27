@@ -49,6 +49,7 @@ class Vehicle:
         # Values used in the driving stage
         # -------------------------------
         # Add values here to adjust the driving behavior between functions
+        self.continue_driving = True
         self.min_speed = 100
         self.max_speed = 200
         self.accel = 5
@@ -66,6 +67,10 @@ class Vehicle:
         self.color = None
         self.changed_lanes = False 
         self.at_crossing = False
+        self.obstacle_distance = 0
+        self.obstacle_count = 0
+        self.obstacle_higher_threshold = 50.8
+        self.obstacle_lower_threshold = 10.0
         
         
     
@@ -298,8 +303,45 @@ class Vehicle:
         elif blue:
             self._handle_blue()
         elif light:
-            self._handle_light()        
-           
+            self._handle_light() 
+    
+   def detectObstacleForParking(self):
+        distance = self.ultrasonic.distance()
+
+        
+       if distance > self.obstacle_distance:
+            self.besides_obstacle = False
+            self.obstacle_count += 1
+            print("Obstacle passed")
+       
+       self.obstacle_distance = distance    
+
+       if distance <= self.obstacle_higher_threshold and distance > self.obstacle_lower_threshold:
+            print("Obstacle detected")
+            self.besides_obstacle = True
+            wait(1000)  
+
+        if self.obstacle_count == 2:
+            # parking begins
+            self.parallel_park()
+            self.continue_driving = False  # Exit the loop after parking
+
+    def parallel_park(self):
+        forward_distance = ultrasonic.distance() / 2  
+        self.motorL.run_angle(10, forward_distance, Stop.BRAKE, False)
+        self.motorR.run_angle(10, forward_distance, Stop.BRAKE, True)
+
+        #backwards
+        self.motorL.run_angle(-20, 230, Stop.BRAKE, False) 
+        self.motorR.run_angle(Stop.Break)  
+
+        # 
+        self.motorL.run_angle(-20, 360, Stop.BRAKE, False)
+        self.motorR.run_angle(-20, 360, Stop.BRAKE, True)
+
+        # Straighten the robot
+        self.motorL.run_angle(20, 115, Stop.BRAKE, False)
+        self.motorR.run_angle(-20, 115, Stop.BRAKE, True)
     
     def drive(self):
         timer = 0        
@@ -312,60 +354,16 @@ class Vehicle:
             self.detectObstacle()
             self._getClosestColor()
             self._process_color()
+            self.detectObstacleForParking()
             self.frame += 1
             if self.frame % 10 == 0:
                 self._print_data()
             self.robot.drive(self.speed, self.turning_angle)
-           
-obstacle_count = 0  
-obstacle_threshold = 50.8  #test how much centimeters
-
-# parallel parking
-def parallel_park():
-    forward_distance = ultrasonic.distance() / 2  
-    left_motor.run_angle(10, forward_distance, Stop.BRAKE, False)
-    right_motor.run_angle(10, forward_distance, Stop.BRAKE, True)
-
-    #backwards
-    left_motor.run_angle(-20, 230, Stop.BRAKE, False) 
-    right_motor.run_angle(Stop.Break)  
-
-    # 
-    left_motor.run_angle(-20, 360, Stop.BRAKE, False)
-    right_motor.run_angle(-20, 360, Stop.BRAKE, True)
-
-    # Straighten the robot
-    left_motor.run_angle(20, 115, Stop.BRAKE, False)
-    right_motor.run_angle(-20, 115, Stop.BRAKE, True)
-
-
-while True:
-    # distance to an obstacle
-    distance = ultrasonic.distance()
-    
-    if distance <= obstacle_threshold:
-        obstacle_count += 1  
-        wait(1000)  
-
-        if obstacle_count == 2:
-            # parking begins
-            parallel_park()
-            break  # Exit the loop after parking
-
-    else:
-       
-       car.drive()
-
-        
-
-
-
-        
+ 
 
 
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic)
 # car.calibrate()
 car.loadCalibratedData()
-parallel_park()
-#car.drive()
+car.drive()
 # car.driveStraight()
