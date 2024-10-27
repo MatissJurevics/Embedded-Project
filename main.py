@@ -317,6 +317,44 @@ class Vehicle:
                 self._print_data()
             self.robot.drive(self.speed, self.turning_angle)
            
+obstacle_count = 0  
+obstacle_threshold = 50.8  #test how much centimeters
+
+# parallel parking
+def parallel_park():
+    forward_distance = ultrasonic.distance() / 2  
+    left_motor.run_angle(10, forward_distance, Stop.BRAKE, False)
+    right_motor.run_angle(10, forward_distance, Stop.BRAKE, True)
+
+    #backwards
+    left_motor.run_angle(-20, 230, Stop.BRAKE, False) 
+    right_motor.run_angle(Stop.Break)  
+
+    # 
+    left_motor.run_angle(-20, 360, Stop.BRAKE, False)
+    right_motor.run_angle(-20, 360, Stop.BRAKE, True)
+
+    # Straighten the robot
+    left_motor.run_angle(20, 115, Stop.BRAKE, False)
+    right_motor.run_angle(-20, 115, Stop.BRAKE, True)
+
+
+while True:
+    # distance to an obstacle
+    distance = ultrasonic.distance()
+    
+    if distance <= obstacle_threshold:
+        obstacle_count += 1  
+        wait(1000)  
+
+        if obstacle_count == 2:
+            # parking begins
+            parallel_park()
+            break  # Exit the loop after parking
+
+    else:
+       
+       car.drive()
 
         
 
@@ -328,5 +366,6 @@ class Vehicle:
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic)
 # car.calibrate()
 car.loadCalibratedData()
-car.drive()
+parallel_park()
+#car.drive()
 # car.driveStraight()
