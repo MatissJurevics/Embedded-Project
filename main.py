@@ -24,6 +24,7 @@ ev3.screen.set_font(font)
 sensorL = ColorSensor(Port.S1)
 sensorR = ColorSensor(Port.S4)
 ultrasonic = UltrasonicSensor(Port.S2)
+ir = InfraredSensor(Port.S3)
 motorL = Motor(Port.D )
 motorL.dc(100)
 
@@ -34,12 +35,13 @@ robot = DriveBase(motorL, motorR, wheel_diameter=55.5, axle_track=104)
 
 
 class Vehicle:
-    def __init__(self, sensorL, sensorR, robot, motorL = None, motorR = None, hub = None, ultrasonic = None):
+    def __init__(self, sensorL, sensorR, robot, motorL = None, motorR = None, hub = None, ultrasonic = None, infrared = None):
         self.sensorL = sensorL;
         self.sensorR = sensorR;
         self.robot = robot;
         self.hub = hub;
-        self.ultraSonic = ultrasonic;
+        self.ultrasonic = ultrasonic;
+        self.infrared = infrared;
         self.screen = hub.screen;
         self.motorL = motorL;
         self.motorR = motorR;
@@ -194,8 +196,9 @@ class Vehicle:
             self.robot.drive(100,0)
             
     def detectObstacle(self):
-        dist = self.ultraSonic.distance()
+        dist = self.ultrasonic.distance()
         self.objectDistance = dist
+        
         
     def switchLane(self): # TODO: Make this more fluid for the obstacle avoidance
         self.robot.turn(-90)
@@ -289,6 +292,29 @@ class Vehicle:
                 if self.speed < self.min_speed:
                     self.speed = self.min_speed
     
+    def _obstacle_check(self):
+        self.detectObstacle()
+        if self.objectDistance < 200:
+            self._handle_obstacle()
+        return
+    
+    def _handle_obstacle(self):
+        left_lane = 1 if self.side_weight[0] > self.side_weight[1] else -1
+        switching = False
+        angle = 60
+        while switching:
+            self.robot.drive(self.speed,(45 * left_lane))
+            self._getClosestColor()
+            if self.color[0] == "green" or self.color[1] == "green":
+                switching = False
+        self.robot.turn(angle * left_lane)
+        self.side_weight = self.side_weight[::-1]
+        self.robot.drive(self.speed,0)
+        
+        
+        return
+    
+    
     def _process_color(self):
         light = (self.color[0] == "white" or self.color[0] == "green" or self.color[1] == "white" or self.color[1] == "green")
         red = (self.color[0] == "red" and self.color[1] == "red")
@@ -305,40 +331,37 @@ class Vehicle:
         elif light:
             self._handle_light() 
     
-   def detectObstacleForParking(self):
+    def detectObstacleForParking(self):
         distance = self.ultrasonic.distance()
 
         
-       if distance > self.obstacle_distance:
+        if distance > self.obstacle_distance:
             self.besides_obstacle = False
             self.obstacle_count += 1
             print("Obstacle passed")
-       
-       self.obstacle_distance = distance    
+        
+        self.obstacle_distance = distance    
 
-       if distance <= self.obstacle_higher_threshold and distance > self.obstacle_lower_threshold:
+        if distance <= self.obstacle_higher_threshold and distance > self.obstacle_lower_threshold:
             print("Obstacle detected")
             self.besides_obstacle = True
             wait(1000)  
 
-        if self.obstacle_count == 2:
-            # parking begins
-            self.parallel_park()
-            self.continue_driving = False  # Exit the loop after parking
+            if self.obstacle_count == 2:
+                # parking begins
+                self.parallel_park()
+                self.continue_driving = False  # Exit the loop after parking
 
     def parallel_park(self):
         forward_distance = ultrasonic.distance() / 2  
         self.motorL.run_angle(10, forward_distance, Stop.BRAKE, False)
         self.motorR.run_angle(10, forward_distance, Stop.BRAKE, True)
-
         #backwards
         self.motorL.run_angle(-20, 230, Stop.BRAKE, False) 
         self.motorR.run_angle(Stop.Break)  
-
         # 
         self.motorL.run_angle(-20, 360, Stop.BRAKE, False)
         self.motorR.run_angle(-20, 360, Stop.BRAKE, True)
-
         # Straighten the robot
         self.motorL.run_angle(20, 115, Stop.BRAKE, False)
         self.motorR.run_angle(-20, 115, Stop.BRAKE, True)
@@ -355,6 +378,7 @@ class Vehicle:
             self._getClosestColor()
             self._process_color()
             self.detectObstacleForParking()
+            self._obstacle_check()
             self.frame += 1
             if self.frame % 10 == 0:
                 self._print_data()
@@ -362,7 +386,7 @@ class Vehicle:
  
 
 
-car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic)
+car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
 # car.calibrate()
 car.loadCalibratedData()
 car.drive()
