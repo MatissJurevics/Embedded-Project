@@ -332,7 +332,7 @@ class Vehicle:
             self._handle_light() 
     
     def detectObstacleForParking(self):
-        distance = self.ultrasonic.distance()
+        distance = self.infrared.distance()
 
         
         if distance > self.obstacle_distance:
@@ -353,7 +353,8 @@ class Vehicle:
                 self.continue_driving = False  # Exit the loop after parking
 
     def parallel_park(self):
-        forward_distance = ultrasonic.distance() / 2  
+        #changed
+        forward_distance = infrared.distance() / 2  
         self.motorL.run_angle(10, forward_distance, Stop.BRAKE, False)
         self.motorR.run_angle(10, forward_distance, Stop.BRAKE, True)
         #backwards
