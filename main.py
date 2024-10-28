@@ -73,7 +73,7 @@ class Vehicle:
         self.obstacle_count = 0
         self.obstacle_higher_threshold = 50.8
         self.obstacle_lower_threshold = 10.0
-        self.parking = False
+        self.skip_turn_logic = False
         
         
     
@@ -304,12 +304,15 @@ class Vehicle:
         switching = False
         angle = 60
         while switching:
-            self.robot.drive(self.speed,(45 * left_lane))
+            self.robot.drive(self.speed,(angle * left_lane))
             self._getClosestColor()
+            self._process_color()
             if self.color[0] == "green" or self.color[1] == "green":
                 switching = False
-        self.robot.turn(angle * left_lane)
-        self.side_weight = self.side_weight[::-1]
+                self.skip_turn_logic = True
+                self.side_weight = self.side_weight[::-1] 
+        
+        self.robot.drive(100, (angle+30 * -left_lane))
         self.robot.drive(self.speed,0)
         
         
@@ -321,8 +324,7 @@ class Vehicle:
         red = (self.color[0] == "red" and self.color[1] == "red")
         yellow = (self.color[0] == "yellow" or self.color[1] == "yellow")
         blue = (self.color[0] == "blue" and self.color[1] == "blue")
-        if self.parking:
-            return
+        
         if not blue:
             self.blue_frames = 0
         if red:
@@ -331,6 +333,8 @@ class Vehicle:
             self._handle_yellow()
         elif blue:
             self._handle_blue()
+        elif self.skip_turn_logic:
+            return
         elif light:
             self._handle_light() 
     
