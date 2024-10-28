@@ -73,6 +73,7 @@ class Vehicle:
         self.obstacle_count = 0
         self.obstacle_higher_threshold = 50.8
         self.obstacle_lower_threshold = 10.0
+        self.parking = False
         
         
     
@@ -320,6 +321,8 @@ class Vehicle:
         red = (self.color[0] == "red" and self.color[1] == "red")
         yellow = (self.color[0] == "yellow" or self.color[1] == "yellow")
         blue = (self.color[0] == "blue" and self.color[1] == "blue")
+        if self.parking:
+            return
         if not blue:
             self.blue_frames = 0
         if red:
