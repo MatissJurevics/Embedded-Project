@@ -54,15 +54,15 @@ class Vehicle:
         self.continue_driving = True
         self.min_speed = 100
         self.max_speed = 200
-        self.accel = 5
+        self.accel = 3
         self.turning_angle = 0
         self.speed = 0
         self.frame = 0
         self.speed = self.min_speed
         self.blue_frames = 0
         self.side_weight = [0,0]
-        self.soft_turn = 30
-        self.sharp_turn = 85
+        self.soft_turn = 40
+        self.sharp_turn = 60
         self.left_turns = 0
         self.drift = -4
         self.objectDistance = 0
@@ -73,6 +73,7 @@ class Vehicle:
         self.obstacle_count = 0
         self.obstacle_higher_threshold = 50.8
         self.obstacle_lower_threshold = 10.0
+        self.objectAvoidThreashold = 300
         self.skip_turn_logic = False
         
         
@@ -192,16 +193,13 @@ class Vehicle:
         returnVal = [closestColor[0], closestColor[1], closestDistance]
         self.color = returnVal
 
-    def driveStraight(self): # Redundant function, used for testing
-        while True:
-            self.robot.drive(100,0)
             
     def detectObstacle(self):
         dist = self.ultrasonic.distance()
         self.objectDistance = dist
         
         
-    def switchLane(self): # TODO: Make this more fluid for the obstacle avoidance
+    def switchLane(self): # DEPRECATED: No longer relevant for the assignment
         self.robot.turn(-90)
         self.robot.drive(200,0)
         wait(1000)
@@ -279,7 +277,7 @@ class Vehicle:
                     self.side_weight[0] -= 1
                 self.turning_angle = -self.soft_turn if self.side_weight[0] > self.side_weight[1] else -self.sharp_turn
                 self.turning_angle += 20 if self.left_turns > 5 else 0
-                self.speed -= self.accel * 10
+                self.speed -= self.accel * 5
                 if self.speed < self.min_speed:
                     self.speed = self.min_speed
             elif self.color[1] == "green" or self.color[1] == "white":
@@ -289,31 +287,56 @@ class Vehicle:
                     self.side_weight[1] -= 1
                 self.left_turns = 0
                 self.turning_angle = self.soft_turn
-                self.speed -= self.accel * 10
+                self.speed -= self.accel * 5
                 if self.speed < self.min_speed:
                     self.speed = self.min_speed
     
     def _obstacle_check(self):
         self.detectObstacle()
-        if self.objectDistance < 200:
+        if self.objectDistance < self.objectAvoidThreashold:
             self._handle_obstacle()
         return
     
     def _handle_obstacle(self):
-        left_lane = 1 if self.side_weight[0] > self.side_weight[1] else -1
-        switching = False
-        angle = 60
+        left_lane = -1 if self.side_weight[0] > self.side_weight[1] else 1
+        switching = True
+        angle = 70
+        startframe = self.frame
+        endframe = 0
+        crossed_line = False
+        time_diff = 0
+        self.skip_turn_logic = True
         while switching:
+            print("Switching lanes ")
             self.robot.drive(self.speed,(angle * left_lane))
             self._getClosestColor()
-            self._process_color()
-            if self.color[0] == "green" or self.color[1] == "green":
+            self.frame += 1
+            if self.frame % 10 == 0:
+                self._print_data()
+                
+            if self.color[0] == "white"and not crossed_line:
+                time_diff = self.frame - startframe
+                startframe = self.frame
+                left_lane = -left_lane
+                crossed_line = True
+                endframe = self.frame + time_diff
+                self.side_weight = self.side_weight[::-1]
+                self.robot.drive(self.speed,0)
+                wait(200)
+                print("startframe: ", startframe, "endframe: ", endframe, "time_diff: ", time_diff, "frame: ", self.frame)
+            
+            if crossed_line and self.frame > endframe:
+                self.robot.stop()
                 switching = False
-                self.skip_turn_logic = True
-                self.side_weight = self.side_weight[::-1] 
-        
+                skip_turn_logic = False
+                wait(10000)
+                
+            
+                
+                
+        print("Switched Lanes")
         self.robot.drive(100, (angle+30 * -left_lane))
-        self.robot.drive(self.speed,0)
+        self.turning_angle = 0
         
         
         return
@@ -337,6 +360,8 @@ class Vehicle:
             return
         elif light:
             self._handle_light() 
+        else:
+            self.speed += self.accel
     
     def detectObstacleForParking(self):
         distance = self.infrared.distance()
@@ -361,7 +386,7 @@ class Vehicle:
 
     def parallel_park(self):
         #changed
-        forward_distance = infrared.distance() / 2  
+        forward_distance = self.infrared.distance() / 2  
         self.motorL.run_angle(10, forward_distance, Stop.BRAKE, False)
         self.motorR.run_angle(10, forward_distance, Stop.BRAKE, True)
         #backwards
@@ -382,7 +407,6 @@ class Vehicle:
         self.hub.speaker.beep()
         
         while True:
-            self.detectObstacle()
             self._getClosestColor()
             self._process_color()
             self.detectObstacleForParking()
@@ -390,7 +414,9 @@ class Vehicle:
             self.frame += 1
             if self.frame % 10 == 0:
                 self._print_data()
+            self.speed = self.max_speed if self.speed > self.max_speed else self.speed
             self.robot.drive(self.speed, self.turning_angle)
+            self.turning_angle = 0
  
 
 
@@ -398,4 +424,3 @@ car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
 # car.calibrate()
 car.loadCalibratedData()
 car.drive()
-# car.driveStraight()
