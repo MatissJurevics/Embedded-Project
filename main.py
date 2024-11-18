@@ -214,11 +214,14 @@ class Vehicle:
         lane = "left lane" if  self.side_weight[0] > self.side_weight[1] else "right lane"
         blue = "blue" if self.color[0] == "blue" or self.color[1] == "blue" else "not blue"
         self.screen.clear()
-        self.screen.draw_text(0, 20, str("L:{}  R:{} CL:{}  CR:{}".format(self.color[0], self.color[1], self.color[2][0], self.color[2][1])))
-        self.screen.draw_text(0, 40, str(self.speed))
-        self.screen.draw_text(0, 60, str(self.turning_angle))
-        self.screen.draw_text(0, 80, "{lane}: {side_weight}".format(lane=lane, side_weight=self.side_weight))
-        self.screen.draw_text(0, 100, str(self.objectDistance))
+        self.screen.draw_text(85, 5, "Convoy Mode" if self.convoy else "Independent Mode", text_color=Color.WHITE, background_color=Color.BLACK)
+        if self.convoy:
+            self.screen.draw_text(85, 20, "Follow Mode" if self.follow else "Leader Mode", text_color=Color.WHITE, background_color=Color.BLACK)
+        self.screen.draw_text(0, 30, str("L:{}  R:{} CL:{}  CR:{}".format(self.color[0], self.color[1], self.color[2][0], self.color[2][1])))
+        self.screen.draw_text(0, 50, str(self.speed))
+        self.screen.draw_text(0, 70, str(self.turning_angle))
+        self.screen.draw_text(0, 90, "{lane}: {side_weight}".format(lane=lane, side_weight=self.side_weight))
+        self.screen.draw_text(0, 110, str(self.objectDistance))
         
     def _print_data_console(self):
         return
@@ -258,11 +261,17 @@ class Vehicle:
                 if selected == 0:
                     self.calibrate()
                 elif selected == 1:
-                    return timer + 10000
+                    self.convoy = False
+                    self.follow = False
+                    self.drive()
                 elif selected == 2:
-                    return timer + 10000
+                    self.convoy = True
+                    self.follow = False
+                    self.drive()
                 elif selected == 3:
-                    return timer + 10000
+                    self.convoy = True
+                    self.follow = True
+                    self.drive()
                 elif selected == 4:
                     os.system("/home/robot/testing/ev3doom/ev3doom -iwad /home/robot/testing/ev3doom/doom1.wad")
             wait(200)
@@ -367,46 +376,7 @@ class Vehicle:
         endframe = 0
         crossed_line = False
         time_diff = 0
-        # self.skip_turn_logic = True
-        self._switch_lane()
-        # while switching:
-        #     print("Switching lanes ")
-        #     self.robot.drive(self.speed,(angle * left_lane))
-        #     self._getClosestColor()
-        #     self.frame += 1
-        #     if self.frame % 10 == 0:
-        #         self._print_data()
-            
-        #     if self.color[detecting_sensor-1] == "white"and not crossed_line: # sensor - 1 is the other sensor. at 0, 0 -1 = -1, which is the right sensor  at 1, 1 - 1 = 0, which is the left sensor
-        #         self.robot.drive(self.speed,(angle * left_lane))
-        #         wait((20/angle)*1000)
-        #         white_detected = True
-                
-            
-        #     if self.color[detecting_sensor] == "white"and not crossed_line:
-        #         white_detected = True
-                
-        #     if white_detected and not crossed_line:
-        #         time_diff = self.frame - startframe
-        #         startframe = self.frame
-        #         left_lane = -left_lane
-        #         crossed_line = True
-        #         endframe = self.frame + time_diff
-        #         self.side_weight = self.side_weight[::-1]
-        #         self.robot.drive(self.speed,0)
-        #         wait(600)
-        #         print("startframe: ", startframe, "endframe: ", endframe, "time_diff: ", time_diff, "frame: ", self.frame)
-        #         white_detected = False
-            
-        #     if crossed_line and self.frame > endframe:
-        #         self.robot.stop()
-        #         switching = False
-        #         self.skip_turn_logic = False
-        #         wait(3000)
-                
-            
-                
-                
+        self._switch_lane()   
         print("Switched Lanes")
         self.robot.drive(100, (angle+30 * -left_lane))
         self.turning_angle = 0
@@ -506,15 +476,15 @@ class Vehicle:
         mbox.send("hello to you")
         mbox.wait()
         print(mbox.read())
-    
-    def drive(self):
         
-        
-        
+    def run(self):
         timer = 0        
         while timer < 1500:
             self.screen.clear()
-            timer = self._print_menu(timer)
+            timer = self._print_menu(timer)        
+
+    def drive(self):
+        
         self.hub.speaker.beep()
         
         while True:
@@ -530,10 +500,7 @@ class Vehicle:
             if self.frame % 10 == 0:
                 self._print_data()
                 self._print_data_console()
-            self.speed = self.max_speed if self.speed > self.max_speed else self.speed
-            if self.side_weight[0] < self.side_weight[1]:
-                self.turning_angle -= 10 if not self.changed_lanes else 10
-            
+            self.speed = self.min_speed
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
@@ -542,5 +509,5 @@ class Vehicle:
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
 # car.calibrate()
 car.loadCalibratedData()
-car.drive()
+car.run()
 # car.server()
