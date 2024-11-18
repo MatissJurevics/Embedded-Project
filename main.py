@@ -455,16 +455,27 @@ class Vehicle:
     
     def server(self):
         self.server = BluetoothMailboxServer()
-        mbox = TextMailbox('mbox', server)
+        mbox = TextMailbox('mbox', self.server)
+        self.server.wait_for_connection()
+        mbox.wait()
+        print(mbox.read())
+        mbox.send("Karlos")
     
     def client(self):
+        self.client = BluetoothMailboxClient()
+        mbox = TextMailbox('mbox', client)
+        SERVER = "ev3dev"
+        print("setting up connection")
+        client.connect(SERVER)
+        print("connected")
         
+        mbox.send("hello to you")
+        mbox.wait()
+        print(mbox.read())
     
     def drive(self):
         
-        server.wait_for_connection()
-        mbox.wait()
-        mbox.send("hello to you")
+        
         timer = 0        
         while timer < 1500:
             self.screen.clear()
@@ -496,4 +507,5 @@ class Vehicle:
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
 # car.calibrate()
 car.loadCalibratedData()
-car.drive()
+# car.drive()
+car.server()
