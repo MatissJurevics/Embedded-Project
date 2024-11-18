@@ -9,6 +9,8 @@ from pybricks.media.ev3dev import SoundFile, ImageFile, Font
 from pybricks.messaging import BluetoothMailboxServer, TextMailbox, BluetoothMailboxClient
 import json
 import http
+import os
+
 
 
 
@@ -227,12 +229,44 @@ class Vehicle:
         # print(self.objectDistance)
     
     def _print_menu(self, timer):
-        self.screen.draw_text(0, 20, "press to calibrate")
-        if self.hub.buttons.pressed():
-            wait(300)
-            self.calibrate()
-        wait(100)
-        return timer + 100
+        # self.screen.draw_text(0, 20, "press to calibrate")
+        # buttons = self.hub.buttons.pressed()
+        selected = 0
+        while True:
+            self.screen.clear()
+            buttons = self.hub.buttons.pressed()
+            vals = ["calibrate", "drive (independant)", "drive (leader)", "drive (follower)", "doom"]
+            for idx, val in enumerate(vals):
+                if idx == selected:
+                    self.screen.draw_text(0, 10 + (idx * 20), "> " + val)
+                else:
+                    self.screen.draw_text(0, 10 + (idx * 20), val)
+            print(buttons, selected)
+            if buttons:
+                print("button pressed")
+                if buttons[0] == Button.UP:
+                    selected -= 1
+                    print("up")
+                elif Button.DOWN in buttons:
+                    selected += 1
+                if selected < 0:
+                    selected = len(vals) - 1
+                elif selected >= len(vals):
+                    selected = 0
+            
+            if Button.CENTER in buttons:
+                if selected == 0:
+                    self.calibrate()
+                elif selected == 1:
+                    return timer + 10000
+                elif selected == 2:
+                    return timer + 10000
+                elif selected == 3:
+                    return timer + 10000
+                elif selected == 4:
+                    os.system("/home/robot/testing/ev3doom/ev3doom -iwad /home/robot/testing/ev3doom/doom1.wad")
+            wait(200)
+        return timer
     
     def _handle_blue(self):
         self.robot.stop()
@@ -476,6 +510,7 @@ class Vehicle:
     def drive(self):
         
         
+        
         timer = 0        
         while timer < 1500:
             self.screen.clear()
@@ -507,5 +542,5 @@ class Vehicle:
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
 # car.calibrate()
 car.loadCalibratedData()
-# car.drive()
-car.server()
+car.drive()
+# car.server()
