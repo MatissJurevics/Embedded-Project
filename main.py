@@ -6,6 +6,7 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile, Font
+from pybricks.messaging import BluetoothMailboxServer, TextMailbox, BluetoothMailboxClient
 import json
 import http
 
@@ -61,8 +62,8 @@ class Vehicle:
         self.speed = self.min_speed
         self.blue_frames = 0
         self.side_weight = [0,0]
-        self.soft_turn = 40
-        self.sharp_turn = 60
+        self.soft_turn = 50
+        self.sharp_turn = 70
         self.left_turns = 0
         self.drift = -4
         self.objectDistance = 0
@@ -73,7 +74,7 @@ class Vehicle:
         self.obstacle_count = 0
         self.obstacle_higher_threshold = 50.8
         self.obstacle_lower_threshold = 10.0
-        self.objectAvoidThreashold = 300
+        self.objectAvoidThreashold = 250
         self.skip_turn_logic = False
         
         
@@ -216,6 +217,14 @@ class Vehicle:
         self.screen.draw_text(0, 60, str(self.turning_angle))
         self.screen.draw_text(0, 80, "{lane}: {side_weight}".format(lane=lane, side_weight=self.side_weight))
         self.screen.draw_text(0, 100, str(self.objectDistance))
+        
+    def _print_data_console(self):
+        return
+        # print("L:{}  R:{} CL:{}  CR:{}".format(self.color[0], self.color[1], self.color[2][0], self.color[2][1]), end="\r", flush=True)
+        # print("Speed: " ,self.speed, end="\r", flush=True)
+        # print("Turning angle: ", self.turning_angle, end="\r", flush=True)
+        # print("{lane}: {side_weight}".format(lane=lane, side_weight=self.side_weight), end="\r", flush=True)
+        # print(self.objectDistance)
     
     def _print_menu(self, timer):
         self.screen.draw_text(0, 20, "press to calibrate")
@@ -242,30 +251,46 @@ class Vehicle:
         
     def _handle_red(self):
         if self.changed_lanes:
-            self.robot.stop()
+            print("changed lanes")
             self.hub.speaker.beep()
-            exit()
+            # self.robot.stop()
+            # self.hub.speaker.beep()
+            # exit()
         else:
-            left_lane = (self.side_weight[0] > self.side_weight[1])
-            self.changed_lanes = True
-            if left_lane:
-                self.robot.turn(-90)
-                self.robot.drive(200,0)
-                wait(1000)
-                self.robot.turn(90)
-                self.robot.drive(100,0)
-                wait(750)
-                self.speed = self.min_speed
-                self.side_weight = [0,1000000]
-            else:
-                self.robot.turn(90)
-                self.robot.drive(200,0)
-                wait(850)
-                self.robot.turn(-70)
-                self.robot.drive(100,0)
-                wait(750)
-                self.speed = self.min_speed
-                self.side_weight = [1000000,0]
+            self.changed_lanes = True # called changed lanes but refers to crossing red
+            # self._switch_lane()          
+    
+    def _switch_lane(self):
+        left_lane = (self.side_weight[0] > self.side_weight[1])
+        if left_lane:
+            # self.robot.turn(-90)
+            self.robot.drive(150,-80)
+            wait(700)
+            self.robot.stop()
+            wait(100)
+            # self.robot.turn(90)
+            self.robot.drive(150,80)
+            wait(700)
+            self.robot.stop()
+            wait(100)
+            self._getClosestColor()
+            if self.color[0] == "green" and self.color[1] == "green":
+                self.robot.turn(30)
+            self.speed = self.min_speed
+            self.side_weight = [0,1000000]
+        else:
+            # self.robot.turn(90)
+            self.robot.drive(150,80)
+            wait(500)
+            # self.robot.turn(90)
+            self.robot.drive(150,-45)
+            wait(400)
+            self.robot.stop()
+            wait(100)
+            if self.color[0] == "green" and self.color[1] == "green":
+                self.robot.turn(-30)
+            self.speed = self.min_speed
+            self.side_weight = [1000000,0]
     
     def _handle_light(self):
         if not self.at_crossing:
@@ -276,7 +301,8 @@ class Vehicle:
                 else:
                     self.side_weight[0] -= 1
                 self.turning_angle = -self.soft_turn if self.side_weight[0] > self.side_weight[1] else -self.sharp_turn
-                self.turning_angle += 20 if self.left_turns > 5 else 0
+                self.turning_angle -= 40 if self.left_turns > 5 else 0
+               
                 self.speed -= self.accel * 5
                 if self.speed < self.min_speed:
                     self.speed = self.min_speed
@@ -299,37 +325,50 @@ class Vehicle:
     
     def _handle_obstacle(self):
         left_lane = -1 if self.side_weight[0] > self.side_weight[1] else 1
+        detecting_sensor = 1 if left_lane == 1 else 0
         switching = True
         angle = 70
+        white_detected = False
         startframe = self.frame
         endframe = 0
         crossed_line = False
         time_diff = 0
-        self.skip_turn_logic = True
-        while switching:
-            print("Switching lanes ")
-            self.robot.drive(self.speed,(angle * left_lane))
-            self._getClosestColor()
-            self.frame += 1
-            if self.frame % 10 == 0:
-                self._print_data()
-                
-            if self.color[0] == "white"and not crossed_line:
-                time_diff = self.frame - startframe
-                startframe = self.frame
-                left_lane = -left_lane
-                crossed_line = True
-                endframe = self.frame + time_diff
-                self.side_weight = self.side_weight[::-1]
-                self.robot.drive(self.speed,0)
-                wait(200)
-                print("startframe: ", startframe, "endframe: ", endframe, "time_diff: ", time_diff, "frame: ", self.frame)
+        # self.skip_turn_logic = True
+        self._switch_lane()
+        # while switching:
+        #     print("Switching lanes ")
+        #     self.robot.drive(self.speed,(angle * left_lane))
+        #     self._getClosestColor()
+        #     self.frame += 1
+        #     if self.frame % 10 == 0:
+        #         self._print_data()
             
-            if crossed_line and self.frame > endframe:
-                self.robot.stop()
-                switching = False
-                skip_turn_logic = False
-                wait(10000)
+        #     if self.color[detecting_sensor-1] == "white"and not crossed_line: # sensor - 1 is the other sensor. at 0, 0 -1 = -1, which is the right sensor  at 1, 1 - 1 = 0, which is the left sensor
+        #         self.robot.drive(self.speed,(angle * left_lane))
+        #         wait((20/angle)*1000)
+        #         white_detected = True
+                
+            
+        #     if self.color[detecting_sensor] == "white"and not crossed_line:
+        #         white_detected = True
+                
+        #     if white_detected and not crossed_line:
+        #         time_diff = self.frame - startframe
+        #         startframe = self.frame
+        #         left_lane = -left_lane
+        #         crossed_line = True
+        #         endframe = self.frame + time_diff
+        #         self.side_weight = self.side_weight[::-1]
+        #         self.robot.drive(self.speed,0)
+        #         wait(600)
+        #         print("startframe: ", startframe, "endframe: ", endframe, "time_diff: ", time_diff, "frame: ", self.frame)
+        #         white_detected = False
+            
+        #     if crossed_line and self.frame > endframe:
+        #         self.robot.stop()
+        #         switching = False
+        #         self.skip_turn_logic = False
+        #         wait(3000)
                 
             
                 
@@ -384,6 +423,21 @@ class Vehicle:
                 self.parallel_park()
                 self.continue_driving = False  # Exit the loop after parking
 
+    def _checkForParking(self):
+        if self.infrared.distance() < 50:
+            self.robot.drive(100,0)
+            wait(1000)
+            self.robot.turn(-90)
+            parked = False
+            while self.ultrasonic.distance() > 100:
+                self.robot.drive(60,0)
+                wait(100)
+            self.hub.speaker.beep()
+            self.robot.stop()
+            wait(10000000)
+    
+            
+    
     def parallel_park(self):
         #changed
         forward_distance = self.infrared.distance() / 2  
@@ -399,7 +453,18 @@ class Vehicle:
         self.motorL.run_angle(20, 115, Stop.BRAKE, False)
         self.motorR.run_angle(-20, 115, Stop.BRAKE, True)
     
+    def server(self):
+        self.server = BluetoothMailboxServer()
+        mbox = TextMailbox('mbox', server)
+    
+    def client(self):
+        
+    
     def drive(self):
+        
+        server.wait_for_connection()
+        mbox.wait()
+        mbox.send("hello to you")
         timer = 0        
         while timer < 1500:
             self.screen.clear()
@@ -409,12 +474,20 @@ class Vehicle:
         while True:
             self._getClosestColor()
             self._process_color()
-            self.detectObstacleForParking()
-            self._obstacle_check()
+            # self.detectObstacleForParking()
+            if self.changed_lanes:
+                self._checkForParking()
+            else:
+                print(self.objectDistance)
+                self._obstacle_check()
             self.frame += 1
             if self.frame % 10 == 0:
                 self._print_data()
+                self._print_data_console()
             self.speed = self.max_speed if self.speed > self.max_speed else self.speed
+            if self.side_weight[0] < self.side_weight[1]:
+                self.turning_angle -= 10 if not self.changed_lanes else 10
+            
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
