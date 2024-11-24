@@ -56,10 +56,7 @@ class Vehicle:
         # Add values here to adjust the driving behavior between functions
         self.continue_driving = True
         self.min_speed = 100
-        self.max_speed = 200
-        self.accel = 3
         self.turning_angle = 0
-        self.speed = 0
         self.frame = 0
         self.speed = self.min_speed
         self.blue_frames = 0
@@ -201,15 +198,6 @@ class Vehicle:
         dist = self.ultrasonic.distance()
         self.objectDistance = dist
         
-        
-    def switchLane(self): # DEPRECATED: No longer relevant for the assignment
-        self.robot.turn(-90)
-        self.robot.drive(200,0)
-        wait(1000)
-        self.robot.turn(90)
-        self.robot.drive(100,0)
-        wait(750)
-        
     def _print_data(self):
         lane = "left lane" if  self.side_weight[0] > self.side_weight[1] else "right lane"
         blue = "blue" if self.color[0] == "blue" or self.color[1] == "blue" else "not blue"
@@ -238,7 +226,7 @@ class Vehicle:
         while True:
             self.screen.clear()
             buttons = self.hub.buttons.pressed()
-            vals = ["calibrate", "drive (independant)", "drive (leader)", "drive (follower)", "doom"]
+            vals = ["Calibrate", "Drive (independant)", "Drive (leader)", "Drive (follower)", "Doom"]
             for idx, val in enumerate(vals):
                 if idx == selected:
                     self.screen.draw_text(0, 10 + (idx * 20), "> " + val)
@@ -282,14 +270,12 @@ class Vehicle:
         wait(3000)
         self.robot.drive(100,0)
         wait(300)
-        self.speed = self.min_speed
         self.blue_frames = 0
     
     def _handle_yellow(self):
         self.at_crossing = True
         self.robot.drive(75,0)
         wait(2300)
-        self.speed = self.min_speed
         self.at_crossing = False
         
     def _handle_red(self):
@@ -319,7 +305,6 @@ class Vehicle:
             self._getClosestColor()
             if self.color[0] == "green" and self.color[1] == "green":
                 self.robot.turn(30)
-            self.speed = self.min_speed
             self.side_weight = [0,1000000]
         else:
             # self.robot.turn(90)
@@ -332,7 +317,6 @@ class Vehicle:
             wait(100)
             if self.color[0] == "green" and self.color[1] == "green":
                 self.robot.turn(-30)
-            self.speed = self.min_speed
             self.side_weight = [1000000,0]
     
     def _handle_light(self):
@@ -345,10 +329,7 @@ class Vehicle:
                     self.side_weight[0] -= 1
                 self.turning_angle = -self.soft_turn if self.side_weight[0] > self.side_weight[1] else -self.sharp_turn
                 self.turning_angle -= 40 if self.left_turns > 5 else 0
-               
-                self.speed -= self.accel * 5
-                if self.speed < self.min_speed:
-                    self.speed = self.min_speed
+
             elif self.color[1] == "green" or self.color[1] == "white":
                 if self.color[1] == "green":
                     self.side_weight[1] += 1
@@ -356,9 +337,6 @@ class Vehicle:
                     self.side_weight[1] -= 1
                 self.left_turns = 0
                 self.turning_angle = self.soft_turn
-                self.speed -= self.accel * 5
-                if self.speed < self.min_speed:
-                    self.speed = self.min_speed
     
     def _obstacle_check(self):
         self.detectObstacle()
@@ -380,8 +358,6 @@ class Vehicle:
         print("Switched Lanes")
         self.robot.drive(100, (angle+30 * -left_lane))
         self.turning_angle = 0
-        
-        
         return
     
     
@@ -403,8 +379,6 @@ class Vehicle:
             return
         elif light:
             self._handle_light() 
-        else:
-            self.speed += self.accel
     
     def detectObstacleForParking(self):
         distance = self.infrared.distance()
@@ -500,7 +474,6 @@ class Vehicle:
             if self.frame % 10 == 0:
                 self._print_data()
                 self._print_data_console()
-            self.speed = self.min_speed
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
