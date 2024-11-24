@@ -55,17 +55,17 @@ class Vehicle:
         # -------------------------------
         # Add values here to adjust the driving behavior between functions
         self.continue_driving = True
-        self.min_speed = 100
-        self.turning_angle = 0
-        self.frame = 0
-        self.speed = self.min_speed
-        self.blue_frames = 0
-        self.side_weight = [0,0]
-        self.soft_turn = 50
-        self.sharp_turn = 70
+        self.min_speed = 100 # Minimum speed of the robot (right its just the speed)
+        self.turning_angle = 0 # The turning angle of the robot on any given frame
+        self.frame = 0 # The frame number
+        self.speed = self.min_speed # The speed of the robot
+        self.blue_frames = 0 # The number of frames the robot has been on blue
+        self.side_weight = [0,0] # The weight of the sides of the robot (left, right) 
+        self.soft_turn = 50 # The turning angle for a soft turn 
+        self.sharp_turn = 70 # The turning angle for a sharp turn
         self.left_turns = 0
-        self.drift = -4
-        self.objectDistance = 0
+        self.drift = -4 # The drift of the robot (done to prevent the robot from going between the white lines
+        self.objectDistance = 0 # The distance of the object in front of the robot
         self.color = None
         self.changed_lanes = False 
         self.at_crossing = False
@@ -220,14 +220,16 @@ class Vehicle:
         # print(self.objectDistance)
     
     def _print_menu(self, timer):
-        # self.screen.draw_text(0, 20, "press to calibrate")
-        # buttons = self.hub.buttons.pressed()
+        """
+        `_print_menu` is a function that prints the menu to the screen and
+        allows the user to select an option. 
+        """
         selected = 0
         while True:
             self.screen.clear()
             buttons = self.hub.buttons.pressed()
             vals = ["Calibrate", "Drive (independant)", "Drive (leader)", "Drive (follower)", "Doom"]
-            for idx, val in enumerate(vals):
+            for idx, val in enumerate(vals): 
                 if idx == selected:
                     self.screen.draw_text(0, 10 + (idx * 20), "> " + val)
                 else:
@@ -266,6 +268,9 @@ class Vehicle:
         return timer
     
     def _handle_blue(self):
+        """
+        stop the robot for 3 seconds and then drive forward
+        """
         self.robot.stop()
         wait(3000)
         self.robot.drive(100,0)
@@ -273,12 +278,18 @@ class Vehicle:
         self.blue_frames = 0
     
     def _handle_yellow(self):
+        """
+        move the robot slowly for 2.3 seconds
+        """
         self.at_crossing = True
         self.robot.drive(75,0)
         wait(2300)
         self.at_crossing = False
         
     def _handle_red(self):
+        """
+        handle logic for when the robot drives over red
+        """
         if self.changed_lanes:
             print("changed lanes")
             self.hub.speaker.beep()
@@ -290,7 +301,10 @@ class Vehicle:
             # self._switch_lane()          
     
     def _switch_lane(self):
-        left_lane = (self.side_weight[0] > self.side_weight[1])
+        """
+        Function for lane switching
+        """
+        left_lane = (self.side_weight[0] > self.side_weight[1]) # True if left lane is heavier
         if left_lane:
             # self.robot.turn(-90)
             self.robot.drive(150,-80)
@@ -320,6 +334,10 @@ class Vehicle:
             self.side_weight = [1000000,0]
     
     def _handle_light(self):
+        """
+        handle the logic for when the robot drives over a
+        light color (white or green)
+        """
         if not self.at_crossing:
             if self.color[0] == "green" or self.color[0] == "white":
                 if self.color[0] == "green":
@@ -345,6 +363,9 @@ class Vehicle:
         return
     
     def _handle_obstacle(self):
+        """
+        Handle the obstacle avoidance
+        """
         left_lane = -1 if self.side_weight[0] > self.side_weight[1] else 1
         detecting_sensor = 1 if left_lane == 1 else 0
         switching = True
@@ -362,6 +383,9 @@ class Vehicle:
     
     
     def _process_color(self):
+        """
+        Process the color of the robot
+        """
         light = (self.color[0] == "white" or self.color[0] == "green" or self.color[1] == "white" or self.color[1] == "green")
         red = (self.color[0] == "red" and self.color[1] == "red")
         yellow = (self.color[0] == "yellow" or self.color[1] == "yellow")
@@ -432,6 +456,9 @@ class Vehicle:
         self.motorR.run_angle(-20, 115, Stop.BRAKE, True)
     
     def server(self):
+        """
+        Set up the server for the robot
+        """
         self.server = BluetoothMailboxServer()
         mbox = TextMailbox('mbox', self.server)
         self.server.wait_for_connection()
@@ -440,6 +467,9 @@ class Vehicle:
         mbox.send("Karlos")
     
     def client(self):
+        """
+        Set up the client for the robot and connect it to the server
+        """
         self.client = BluetoothMailboxClient()
         mbox = TextMailbox('mbox', client)
         SERVER = "ev3dev"
@@ -452,26 +482,31 @@ class Vehicle:
         print(mbox.read())
         
     def run(self):
+        """
+        The main function that opens the menu
+        """
         timer = 0        
         while timer < 1500:
             self.screen.clear()
             timer = self._print_menu(timer)        
 
     def drive(self):
-        
+        """
+        The main driving function
+        """
         self.hub.speaker.beep()
         
         while True:
-            self._getClosestColor()
-            self._process_color()
+            self._getClosestColor() # Get the closest color
+            self._process_color() # Process the color
             # self.detectObstacleForParking()
             if self.changed_lanes:
-                self._checkForParking()
+                self._checkForParking() # Check for parking if the robot passes red
             else:
                 print(self.objectDistance)
                 self._obstacle_check()
             self.frame += 1
-            if self.frame % 10 == 0:
+            if self.frame % 10 == 0: # Print data every 10 frames
                 self._print_data()
                 self._print_data_console()
             self.robot.drive(self.speed, self.turning_angle)
