@@ -528,7 +528,8 @@ class Vehicle:
                 self._print_data()
                 self._print_data_console()
             if self.follow:
-                self.speed -= (self.objectDistance - 200) * 0.05
+                print(self.speed, self.objectDistance)
+                self.speed -= (self.objectDistance - 200) * 0.005
                 if self.objectDistance > 190 and self.objectDistance < 210:
                     self.speed = self.min_speed
             self.robot.drive(self.speed, self.turning_angle)
