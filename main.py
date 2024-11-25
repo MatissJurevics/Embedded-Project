@@ -508,8 +508,12 @@ class Vehicle:
         """
         self.hub.speaker.beep()
         if self.convoy:
-            self._handle_sync_data()
+            if self.follow:
+                self.client()
+            else:
+                self.server()
         while True:
+            self._handle_sync_data()
             self._getClosestColor() # Get the closest color
             self._process_color() # Process the color
             # self.detectObstacleForParking()
