@@ -442,23 +442,23 @@ class Vehicle:
             wait(10000000)
     
             
+    # DEPRECATED
+    # def parallel_park(self):
+    #     #changed
+    #     forward_distance = self.infrared.distance() / 2  
+    #     self.motorL.run_angle(10, forward_distance, Stop.BRAKE, False)
+    #     self.motorR.run_angle(10, forward_distance, Stop.BRAKE, True)
+    #     #backwards
+    #     self.motorL.run_angle(-20, 230, Stop.BRAKE, False) 
+    #     self.motorR.run_angle(Stop.Break)  
+    #     # 
+    #     self.motorL.run_angle(-20, 360, Stop.BRAKE, False)
+    #     self.motorR.run_angle(-20, 360, Stop.BRAKE, True)
+    #     # Straighten the robot
+    #     self.motorL.run_angle(20, 115, Stop.BRAKE, False)
+    #     self.motorR.run_angle(-20, 115, Stop.BRAKE, True)
     
-    def parallel_park(self):
-        #changed
-        forward_distance = self.infrared.distance() / 2  
-        self.motorL.run_angle(10, forward_distance, Stop.BRAKE, False)
-        self.motorR.run_angle(10, forward_distance, Stop.BRAKE, True)
-        #backwards
-        self.motorL.run_angle(-20, 230, Stop.BRAKE, False) 
-        self.motorR.run_angle(Stop.Break)  
-        # 
-        self.motorL.run_angle(-20, 360, Stop.BRAKE, False)
-        self.motorR.run_angle(-20, 360, Stop.BRAKE, True)
-        # Straighten the robot
-        self.motorL.run_angle(20, 115, Stop.BRAKE, False)
-        self.motorR.run_angle(-20, 115, Stop.BRAKE, True)
-    
-    def server(self):
+    def leader(self):
         """
         Set up the server for the robot
         """
@@ -469,7 +469,7 @@ class Vehicle:
         print(self.mbox.read())
         self.mbox.send("Karlos")
     
-    def client(self):
+    def follower(self):
         """
         Set up the client for the robot and connect it to the server
         """
@@ -509,24 +509,28 @@ class Vehicle:
         self.hub.speaker.beep()
         if self.convoy:
             if self.follow:
-                self.client()
+                self.follower()
             else:
-                self.server()
+                self.leader()
         while True:
+            self.frame += 1
             self._handle_sync_data()
             self._getClosestColor() # Get the closest color
-            self._process_color() # Process the color
             # self.detectObstacleForParking()
-            if self.changed_lanes:
-                self._checkForParking() # Check for parking if the robot passes red
-            else:
-                print(self.objectDistance)
-                self._obstacle_check()
-            self.frame += 1
+            if not self.follow:
+                self._process_color() # Process the color
+                if self.changed_lanes:
+                    self._checkForParking() # Check for parking if the robot passes red
+                else:
+                    print(self.objectDistance)
+                    self._obstacle_check()
             if self.frame % 10 == 0: # Print data every 10 frames
                 self._print_data()
                 self._print_data_console()
-                
+            if self.follow:
+                self.speed -= (self.objectDistance - 200) * 0.05
+                if self.objectDistance > 190 and self.objectDistance < 210:
+                    self.speed = self.min_speed
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
