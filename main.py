@@ -263,7 +263,10 @@ class Vehicle:
                     self.follow = True
                     self.drive()
                 elif selected == 4:
-                    os.system("/home/robot/testing/ev3doom/ev3doom -iwad /home/robot/testing/ev3doom/doom1.wad")
+                    try:
+                        os.system("/home/robot/testing/ev3doom/ev3doom -iwad /home/robot/testing/ev3doom/doom1.wad")
+                    except:
+                        print("Cannot open Doom")
             wait(200)
         return timer
     
@@ -460,27 +463,36 @@ class Vehicle:
         Set up the server for the robot
         """
         self.server = BluetoothMailboxServer()
-        mbox = TextMailbox('mbox', self.server)
+        self.mbox = TextMailbox('mbox', self.server)
         self.server.wait_for_connection()
-        mbox.wait()
-        print(mbox.read())
-        mbox.send("Karlos")
+        self.mbox.wait()
+        print(self.mbox.read())
+        self.mbox.send("Karlos")
     
     def client(self):
         """
         Set up the client for the robot and connect it to the server
         """
         self.client = BluetoothMailboxClient()
-        mbox = TextMailbox('mbox', client)
+        self.mbox = TextMailbox('mbox', self.client)
         SERVER = "ev3dev"
         print("setting up connection")
-        client.connect(SERVER)
+        self.client.connect(SERVER)
         print("connected")
         
-        mbox.send("hello to you")
-        mbox.wait()
-        print(mbox.read())
-        
+        self.mbox.send("hello to you")
+        self.mbox.wait()
+        print(self.mbox.read())
+    
+    def _handle_sync_data(self):
+        if self.follow:
+            self.mbox.wait()
+            print(self.mbox.read())
+        else:
+            self.mbox.send(self.side_weight)
+        return
+    
+    
     def run(self):
         """
         The main function that opens the menu
@@ -495,7 +507,8 @@ class Vehicle:
         The main driving function
         """
         self.hub.speaker.beep()
-        
+        if self.convoy:
+            self._handle_sync_data()
         while True:
             self._getClosestColor() # Get the closest color
             self._process_color() # Process the color
@@ -509,6 +522,7 @@ class Vehicle:
             if self.frame % 10 == 0: # Print data every 10 frames
                 self._print_data()
                 self._print_data_console()
+                
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
