@@ -402,6 +402,7 @@ class Vehicle:
             self._handle_yellow()
         elif blue:
             self._handle_blue()
+            self.mbox.send("blue")
         elif self.skip_turn_logic:
             return
         elif light:
@@ -487,7 +488,11 @@ class Vehicle:
     def _handle_sync_data(self):
         if self.follow:
             self.mbox.wait()
-            print(self.mbox.read())
+            data = self.mbox.read()
+            print(data)
+            if data == "blue":
+                self._handle_blue()
+            
         else:
             self.mbox.send(self.side_weight)
         return
