@@ -517,7 +517,6 @@ class Vehicle:
         if self.follow:
             self.mbox.wait()
             data = self.mbox.read()
-            print(data)
             if data == "blue":
                 self.robot.stop()
                 wait(3000)
@@ -526,9 +525,6 @@ class Vehicle:
             elif data == "switch":
                 self.hub.speaker.beep()
                 self._switch_lane()
-            
-        else:
-            self._send_data(self.side_weight)
         return
     
     
