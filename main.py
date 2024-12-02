@@ -412,11 +412,11 @@ class Vehicle:
         
         if not blue:
             self.blue_frames = 0
-        if red:
+        if red and not self.follow:
             self._handle_red()
-        elif yellow:
+        elif yellow and not self.follow:
             self._handle_yellow()
-        elif blue:
+        elif blue and not self.follow:
             self._handle_blue()
         elif self.skip_turn_logic:
             return
@@ -545,8 +545,8 @@ class Vehicle:
                 self._handle_sync_data()
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
+            self._process_color() # Process the color
             if not self.follow:
-                self._process_color() # Process the color
                 if self.changed_lanes:
                     self._checkForParking() # Check for parking if the robot passes red
                 else:
