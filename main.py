@@ -431,9 +431,9 @@ class Vehicle:
 
     def _checkForParking(self):
         if self.infrared.distance() < 50:
-            self.robot.drive(100,0)
+            self.robot.drive(-100,0)
             wait(1000)
-            self.robot.turn(-90)
+            self.robot.turn(90) #backwards parking
             parked = False
             while self.ultrasonic.distance() > 100:
                 self.robot.drive(60,0)
@@ -492,10 +492,15 @@ class Vehicle:
             print(data)
             if data == "blue":
                 self._handle_blue()
-            
+            elif data == "trigger_parking"
+                 self._start_parking()
         else:
             self.mbox.send(self.side_weight)
         return
+    
+    def _start_parking(self):
+        print("Starting reverse parking...")
+        self.detectObstacleforParking()
     
     
     def run(self):
@@ -539,7 +544,13 @@ class Vehicle:
                     self.speed = self.min_speed
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
+    
+  
+    
+
+
  
+
 
 
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
