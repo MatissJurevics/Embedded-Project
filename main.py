@@ -293,6 +293,7 @@ class Vehicle:
         """
         move the robot slowly for 2.3 seconds
         """
+        self._send_data("yellow")
         self.at_crossing = True
         self.robot.drive(75,0)
         wait(2300)
@@ -501,9 +502,11 @@ class Vehicle:
             if data == "blue":
                 self.robot.stop()
                 wait(3000)
+            elif data == "yellow":
+                self._handle_yellow()
             
         else:
-            self.mbox.send(self.side_weight)
+            self._send_data(self.side_weight)
         return
     
     
