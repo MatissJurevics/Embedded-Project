@@ -557,6 +557,8 @@ class Vehicle:
             if self.follow:
                 print(self.speed, self.objectDistance)
                 avgDist = self.buffer.average()
+                diff = 300 - avgDist
+                self.speed = self.min_speed + diff
                 
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
