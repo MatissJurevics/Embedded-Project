@@ -125,7 +125,7 @@ class Vehicle:
         
         colors = ["red", "blue", "yellow", "green", "black", "white"]
         values = {}
-
+        wait(500)
         for color in colors:
             print("place on " + color)
             self.screen.clear()
