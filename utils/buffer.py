@@ -9,6 +9,8 @@ class Buffer:
         self.buffer.append(item)
 
     def average(self):
+        if len(self.buffer) == 0:
+            return 0
         return sum(self.buffer) / len(self.buffer)
     
     def __sum__(self, other):
