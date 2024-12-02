@@ -279,6 +279,7 @@ class Vehicle:
         """
         if self.convoy:
             self.mbox.send(msg)
+            self.msg_sent = True
         
     
     def _handle_blue(self):
@@ -524,6 +525,8 @@ class Vehicle:
             elif data == "switch":
                 self.hub.speaker.beep()
                 self._switch_lane()
+            if msg_sent:
+                self._send_data("none")
         return
     
     
