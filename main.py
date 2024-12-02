@@ -324,33 +324,46 @@ class Vehicle:
             self._send_data("switch")
             
         left_lane = (self.side_weight[0] > self.side_weight[1]) # True if left lane is heavier
-        if left_lane:
-            # self.robot.turn(-90)
-            self.robot.drive(150,-80)
-            wait(700)
-            self.robot.stop()
-            wait(100)
-            # self.robot.turn(90)
-            self.robot.drive(150,80)
-            wait(700)
-            self.robot.stop()
-            wait(100)
+        rotate = -90 if left_lane else 90
+        print(left_lane, rotate)
+        self.robot.turn(rotate)
+        wait(100)
+        both_green = self.color[0] == "green" and self.color[1] == "green"
+        while not both_green:
             self._getClosestColor()
-            if self.color[0] == "green" and self.color[1] == "green":
-                self.robot.turn(30)
-            self.side_weight = [0,1000000]
-        else:
-            # self.robot.turn(90)
-            self.robot.drive(150,80)
-            wait(500)
-            # self.robot.turn(90)
-            self.robot.drive(150,-45)
-            wait(400)
-            self.robot.stop()
+            both_green = self.color[0] == "green" and self.color[1] == "green"
+            self.robot.drive(100,0)
             wait(100)
-            if self.color[0] == "green" and self.color[1] == "green":
-                self.robot.turn(-30)
-            self.side_weight = [1000000,0]
+        self.robot.turn(-rotate)
+        self.side_weight.reverse()
+        
+        # if left_lane:
+        #     # self.robot.turn(-90)
+        #     self.robot.drive(150,-80)
+        #     wait(700)
+        #     self.robot.stop()
+        #     wait(100)
+        #     # self.robot.turn(90)
+        #     self.robot.drive(150,80)
+        #     wait(700)
+        #     self.robot.stop()
+        #     wait(100)
+        #     self._getClosestColor()
+        #     if self.color[0] == "green" and self.color[1] == "green":
+        #         self.robot.turn(30)
+        #     self.side_weight = [0,1000000]
+        # else:
+        #     # self.robot.turn(90)
+        #     self.robot.drive(150,80)
+        #     wait(500)
+        #     # self.robot.turn(90)
+        #     self.robot.drive(150,-45)
+        #     wait(400)
+        #     self.robot.stop()
+        #     wait(100)
+        #     if self.color[0] == "green" and self.color[1] == "green":
+        #         self.robot.turn(-30)
+            # self.side_weight = [1000000,0]
     
     def _handle_light(self):
         """
@@ -559,8 +572,8 @@ class Vehicle:
                 print(self.speed, self.objectDistance)
                 avgDist = self.buffer.average()
                 diff = 300 - avgDist
-                self.speed = self.min_speed + (diff/10)
-                print("speed", self.speed)
+                # self.speed = self.min_speed + (diff/10)
+                # print("speed", self.speed)
                 
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
