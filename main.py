@@ -320,7 +320,7 @@ class Vehicle:
         """
         Function for lane switching
         """
-        if not self.follow:
+        if not self.follow and self.convoy:
             self._send_data("switch")
             
         left_lane = (self.side_weight[0] > self.side_weight[1]) # True if left lane is heavier
@@ -511,6 +511,7 @@ class Vehicle:
             elif data == "yellow":
                 self._handle_yellow()
             elif data == "switch":
+                self.hub.speaker.beep()
                 self._switch_lane()
             
         else:
@@ -558,7 +559,8 @@ class Vehicle:
                 print(self.speed, self.objectDistance)
                 avgDist = self.buffer.average()
                 diff = 300 - avgDist
-                self.speed = self.min_speed + diff
+                self.speed = self.min_speed + (diff/10)
+                print("speed", self.speed)
                 
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
