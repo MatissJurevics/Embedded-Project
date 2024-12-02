@@ -270,11 +270,19 @@ class Vehicle:
             wait(200)
         return timer
     
+    def _send_data(self, msg):
+        """
+        Send data to the client
+        """
+        if self.convoy:
+            self.mbox.send(msg)
+        
+    
     def _handle_blue(self):
         """
         stop the robot for 3 seconds and then drive forward
         """
-        self.mbox.send("blue")
+        self._send_data("blue")
         self.robot.stop()
         wait(3000)
         self.robot.drive(100,0)
