@@ -274,6 +274,7 @@ class Vehicle:
         """
         stop the robot for 3 seconds and then drive forward
         """
+        self.mbox.send("blue")
         self.robot.stop()
         wait(3000)
         self.robot.drive(100,0)
@@ -402,7 +403,6 @@ class Vehicle:
             self._handle_yellow()
         elif blue:
             self._handle_blue()
-            self.mbox.send("blue")
         elif self.skip_turn_logic:
             return
         elif light:
@@ -491,7 +491,8 @@ class Vehicle:
             data = self.mbox.read()
             print(data)
             if data == "blue":
-                self._handle_blue()
+                self.robot.stop()
+                wait(3000)
             
         else:
             self.mbox.send(self.side_weight)
@@ -511,6 +512,7 @@ class Vehicle:
         """
         The main driving function
         """
+        self.loadCalibratedData()
         self.hub.speaker.beep()
         if self.convoy:
             if self.follow:
@@ -544,6 +546,6 @@ class Vehicle:
 
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
 # car.calibrate()
-car.loadCalibratedData()
 car.run()
+car.loadCalibratedData()
 # car.server()
