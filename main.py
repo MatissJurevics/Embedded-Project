@@ -521,7 +521,8 @@ class Vehicle:
                 self.leader()
         while True:
             self.frame += 1
-            self._handle_sync_data()
+            if self.convoy:
+                self._handle_sync_data()
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
             if not self.follow:
