@@ -496,7 +496,7 @@ class Vehicle:
         self.server.wait_for_connection()
         self.mbox.wait()
         print(self.mbox.read())
-        self.mbox.send("Karlos")
+        self.mbox.send("First message sent")
     
     def follower(self):
         """
@@ -509,13 +509,12 @@ class Vehicle:
         self.client.connect(SERVER)
         print("connected")
         
-        self.mbox.send("hello to you")
+        self.mbox.send("First message sent")
         self.mbox.wait()
         print(self.mbox.read())
     
     def _handle_sync_data(self):
         if self.follow:
-            self.mbox.wait()
             data = self.mbox.read()
             if data == "blue":
                 self.robot.stop()
@@ -548,6 +547,7 @@ class Vehicle:
                 self.follower()
             else:
                 self.leader()
+
         while True:
             self.frame += 1
             if self.convoy:
@@ -570,7 +570,6 @@ class Vehicle:
                 diff = 300 - avgDist
                 # self.speed = self.min_speed + (diff/10)
                 # print("speed", self.speed)
-                
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
@@ -579,5 +578,4 @@ class Vehicle:
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
 # car.calibrate()
 car.run()
-car.loadCalibratedData()
 # car.server()
