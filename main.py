@@ -9,6 +9,7 @@ from pybricks.media.ev3dev import SoundFile, ImageFile, Font
 from pybricks.messaging import BluetoothMailboxServer, TextMailbox, BluetoothMailboxClient
 import json
 import http
+from utils.buffer import Buffer
 import os
 
 
@@ -51,7 +52,7 @@ class Vehicle:
         self.lows = {"left": [100,100,100], "right": [100,100,100]}
         self.highs = {"left": [0,0,0], "right": [0,0,0]}
         self.mappedColors = {}
-        # Values used in the driving stage
+        self.buffer = Buffer(30)        # Values used in the driving stage
         # -------------------------------
         # Add values here to adjust the driving behavior between functions
         self.continue_driving = True
@@ -196,6 +197,8 @@ class Vehicle:
             
     def detectObstacle(self):
         dist = self.ultrasonic.distance()
+        self.buffer += dist
+        print(self.buffer.buffer)
         self.objectDistance = dist
         
     def _print_data(self):
