@@ -317,6 +317,9 @@ class Vehicle:
         """
         Function for lane switching
         """
+        if not self.follow:
+            self._send_data("switch")
+            
         left_lane = (self.side_weight[0] > self.side_weight[1]) # True if left lane is heavier
         if left_lane:
             # self.robot.turn(-90)
@@ -504,6 +507,8 @@ class Vehicle:
                 wait(3000)
             elif data == "yellow":
                 self._handle_yellow()
+            elif data == "switch":
+                self._switch_lane()
             
         else:
             self._send_data(self.side_weight)
