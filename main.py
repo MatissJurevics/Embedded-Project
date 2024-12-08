@@ -77,6 +77,7 @@ class Vehicle:
         self.objectAvoidThreashold = 250
         self.skip_turn_logic = False
         self.onBlue = False
+        self.onYellow = False
         self.onLaneSwitch = False
         
         
@@ -528,7 +529,10 @@ class Vehicle:
 
                     
             elif data == "yellow":
-                self._handle_yellow()
+                print("Doing Yellow Logic")
+                if not self.onYellow:
+                    self.onYellow = True
+                    self._handle_yellow()
 
             elif data == "switch":
                 self.hub.speaker.beep()
