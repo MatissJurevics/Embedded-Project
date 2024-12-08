@@ -285,12 +285,14 @@ class Vehicle:
             while not acked:
                 # regex for numbers
                 recData = self.mbox.read()
+                print("recData", recData)
                 
                 # test if the data is a number
                 if recData.isdigit():
                     newval = int(recData)
                     if newval > self.latestBufLen:
                         acked = True
+                        print("Acked")
                         break
                     else:
                         self.mbox.send(msg)
@@ -305,13 +307,16 @@ class Vehicle:
         """
         if self.convoy:
             data = self.mbox.read()
+            print("data", data)
             try:
                 if data == self.eventBus[-1]:
                     return "none"
                 else:
-                    print(self.eventBus)
                     self.eventBus.append(data)
+                    print(self.eventBus)
                     self._send_data(len(self.eventBus))
+                    print(len(self.eventBus))
+                    
                     return data
             except:
                 self.eventBus.append(data)
@@ -587,7 +592,7 @@ class Vehicle:
         if self.convoy:
             if self.follow:
                 self._send_data("start")
-                
+                print("Sent start")
             else:
                 self._receive_data()
                 print(self.eventBus)
