@@ -645,11 +645,11 @@ class Vehicle:
             # self.detectObstacleForParking()
             self._process_color() # Process the color
             
-            if not self.follow:
-                if self.lanes > 0:
+            if self.lanes > 0:
                     if self.follow:
                         self._checkForParking() # Check for parking if the robot passes red
-                    else:
+                    elif self.changed_lanes:
+
                         self.robot.drive(-100,0)
                         wait(1000)
                         self.robot.turn(-90) #backwards parking
@@ -660,6 +660,8 @@ class Vehicle:
                         self.hub.speaker.beep()
                         self.robot.stop()
                         wait(10000000)
+                        
+            if not self.follow:
                     
                 else:
                     # print(self.objectDistance)
