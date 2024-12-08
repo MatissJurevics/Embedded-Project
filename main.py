@@ -550,10 +550,8 @@ class Vehicle:
                 else:
                     self.eventBus.append(data)
                     self._send_data(len(self.eventBus))
-                    print(self.eventBus, len(self.eventBus), len(self.latestBufLen))
             except:
                 self.eventBus.append(data)
-                print(self.eventBus)
             
             if self.eventBus[-1] == "blue":
                 print("Stopping: Doing Blue Logic")
@@ -609,12 +607,13 @@ class Vehicle:
         while True:
             self.frame += 1
             if self.convoy:        
-                print("before sync")
                 self._handle_sync_data()
-                print("after sync")
+            print("before color")
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
+            print("before process color")
             self._process_color() # Process the color
+            print("after color")
             if not self.follow:
                 if self.changed_lanes:
                     self._checkForParking() # Check for parking if the robot passes red
