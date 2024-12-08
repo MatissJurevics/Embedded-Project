@@ -659,16 +659,16 @@ class Vehicle:
                     if self.follow:
                         self._checkForParking() # Check for parking if the robot passes red
                     elif self.changed_lanes:
-                        self.robot.drive(100,0)
+                        self.robot.drive(100, 0)
                         wait(1000)
-                        self.robot.turn(-90) #backwards parking
-                        parked = False
-                        while self.ultrasonic.distance() > 100:
-                            self.robot.drive(-60,0)
-                            wait(100)
-                        self.hub.speaker.beep()
+                        
+                        self.robot.turn(90)
+                        
+                        self.robot.drive(-80, 0)
+                        wait(2000)
+                        
                         self.robot.stop()
-                        wait(10000000)
+                        self.hub.speaker.beep()
             except:
                 pass
                         
