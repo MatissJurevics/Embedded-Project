@@ -645,7 +645,7 @@ class Vehicle:
             # self.detectObstacleForParking()
             self._process_color() # Process the color
             
-            if self.lanes > 0:
+            if self.park > 0:
                     if self.follow:
                         self._checkForParking() # Check for parking if the robot passes red
                     elif self.changed_lanes:
