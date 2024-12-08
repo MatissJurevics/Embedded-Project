@@ -562,7 +562,7 @@ class Vehicle:
             data = self._receive_data()
             print("eventBus", self.eventBus)
             
-            if int(self.mbox_blue.read()) > 0 and self.blue.read() < 1000:
+            if int(self.mbox_blue.read()) > 0 and self.blue < 1000:
                 self.blue += 100000
                 print("Stopping: Doing Blue Logic")
                 if not self.onBlue:
@@ -583,6 +583,7 @@ class Vehicle:
                 if not self.onLaneSwitch:
                     self.onLaneSwitch = True
                     self._switch_lane()
+                    print('lanes', self.lanes, self.mbox_lanes.read())
                     self.lanes = int(self.mbox_lanes.read())
             
             
