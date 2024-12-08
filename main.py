@@ -562,7 +562,7 @@ class Vehicle:
             data = self._receive_data()
             print("eventBus", self.eventBus)
             
-            if self.mbox_blue.read() > 0 and self.blue.read() < 1000:
+            if int(self.mbox_blue.read()) > 0 and self.blue.read() < 1000:
                 self.blue += 100000
                 print("Stopping: Doing Blue Logic")
                 if not self.onBlue:
@@ -570,14 +570,14 @@ class Vehicle:
                     self._handle_blue()
 
                     
-            elif self.mbox_yellow.read() > 0 and self.yellow < 1000:
+            elif int(self.mbox_yellow.read()) > 0 and self.yellow < 1000:
                 self.yellow += 100000
                 print("Doing Yellow Logic")
                 if not self.onYellow:
                     self.onYellow = True
                     self._handle_yellow()
 
-            elif self.mbox_lanes.read() > self.lanes:
+            elif int(self.mbox_lanes.read()) > self.lanes:
                 self.hub.speaker.beep()
                 print("Lane Switching ")
                 if not self.onLaneSwitch:
@@ -619,7 +619,7 @@ class Vehicle:
         
 
         print("blue", self.blue, "yellow", self.yellow, "lanes", self.lanes)
-        return
+        
         while True:
             self.frame += 1
             print("before sync")
