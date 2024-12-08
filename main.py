@@ -511,19 +511,23 @@ class Vehicle:
         """
         self.server = BluetoothMailboxServer()
         self.mbox = TextMailbox('mbox', self.server)
-        self.mbox_lanes = NumericMailbox("lanes", self.server)
-        self.mbox_blue = NumericMailbox("blue", self.server)
-        
-        self.mbox_yellow = NumericMailbox("yellow", self.server)
-        self.mbox_park = NumericMailbox("park", self.server)
+        self.mbox_lanes = TextMailbox("lanes", self.server)
+        self.mbox_blue = TextMailbox("blue", self.server)
+        self.mbox_yellow = TextMailbox("yellow", self.server)
+        self.mbox_park = TextMailbox("park", self.server)
         self.server.wait_for_connection()
-        self.mbox_lanes.send(0)
-        self.mbox_blue.send(0)
-        self.mbox_yellow.send(0)
-        self.mbox_park.send(0)
+        
         self.mbox.wait()
-        print(self.mbox.read())
+        self.mbox_lanes.wait()
+        self.mbox_blue.wait()
+        self.mbox_yellow.wait()
+        self.mbox_park.wait()
+        print(self.mbox.read(), self.mbox_lanes.read(), self.mbox_blue.read(), self.mbox_yellow.read(), self.mbox_park.read())
         self.mbox.send("First message sent")
+        self.mbox_lanes.send('0')
+        self.mbox_blue.send('0')
+        self.mbox_yellow.send('0')
+        self.mbox_park.send('0')
     
     def follower(self):
         """
@@ -531,26 +535,27 @@ class Vehicle:
         """
         self.client = BluetoothMailboxClient()
         self.mbox = TextMailbox('mbox', self.client)
-        self.mbox_lanes = NumericMailbox("lanes", self.client)
-        self.mbox_blue = NumericMailbox("blue", self.client)
-        self.mbox_yellow = NumericMailbox("yellow", self.client)
-        self.mbox_park = NumericMailbox("park", self.client)
+        self.mbox_lanes = TextMailbox("lanes", self.client)
+        self.mbox_blue = TextMailbox("blue", self.client)
+        self.mbox_yellow = TextMailbox("yellow", self.client)
+        self.mbox_park = TextMailbox("park", self.client)
         SERVER = "ev3dev"
         print("setting up connection")
         self.client.connect(SERVER)
         print("connected")
         self.mbox.send("First message sent")
+        self.mbox_lanes.send('0')
+        self.mbox_blue.send('0')
+        self.mbox_yellow.send('0')
+        self.mbox_park.send('0')
         print("first message sent, waiting...")
-        self.mbox_lanes.wait()
-        print("received lanes...")
-        self.mbox_blue.wait()
-        print("received blue...")
-        self.mbox_yellow.wait()
-        print("received yellow...")
-        self.mbox_park.wait()
-        print("received park...")
         self.mbox.wait()
-        print(self.mbox.read())
+        self.mbox_lanes.wait()
+        self.mbox_blue.wait()
+        self.mbox_yellow.wait()
+        self.mbox_park.wait()
+        print(self.mbox.read(), self.mbox_lanes.read(), self.mbox_blue.read(), self.mbox_yellow.read(), self.mbox_park.read())
+        print("first message received")
     
     def _handle_sync_data(self):
         if self.follow:
@@ -612,13 +617,14 @@ class Vehicle:
                 self.leader()
         # ---------------------------------------------
         
-        
+
+        print("blue", self.blue, "yellow", self.yellow, "lanes", self.lanes)
+        return
         while True:
             self.frame += 1
             print("before sync")
             if self.convoy:        
                 self._handle_sync_data()
-            print("blue", self.blue, "yellow", self.yellow, "lanes", self.lanes)
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
             self._process_color() # Process the color
