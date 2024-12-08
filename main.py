@@ -85,6 +85,7 @@ class Vehicle:
         self.blue = 0
         self.yellow = 0
         self.park = 0
+        self.follower_ignore_white = None
         
         
     
@@ -392,7 +393,7 @@ class Vehicle:
             wait(100)
         self.robot.turn(-rotate)
         if self.follow:
-            wait(500)
+            wait(1500)
         self.side_weight.reverse()
         
     
@@ -455,12 +456,22 @@ class Vehicle:
         red = (self.color[0] == "red" and self.color[1] == "red")
         yellow = (self.color[0] == "yellow" or self.color[1] == "yellow")
         blue = (self.color[0] == "blue" and self.color[1] == "blue")
+        
+        if yellow and self.follow:
+            if not self.follower_ignore_white:
+                self.follower_ignore_white = self.frame
+            if self.frame - self.follower_ignore_white < 100:
+                if self.color[1] == "white":
+                    self.color[1] = "black"
+                    
         if not blue:
             self.blue_frames = 0
         if red and not self.follow:
+            self.mbox_park.send('1')
             self._handle_red()
         elif yellow and not self.follow:
             self._handle_yellow()
+        
         elif blue and not self.follow:
             self._handle_blue()
         # elif self.skip_turn_logic:
@@ -494,9 +505,10 @@ class Vehicle:
 
     def _checkForParking(self):
         if self.infrared.distance() < 50:
+            self.mbox_lanes.send(self.lanes)
             self.robot.drive(-100,0)
             wait(1000)
-            self.robot.turn(90) #backwards parking
+            self.robot.turn(-90) #backwards parking
             parked = False
             while self.ultrasonic.distance() > 100:
                 self.robot.drive(60,0)
@@ -634,8 +646,21 @@ class Vehicle:
             self._process_color() # Process the color
             
             if not self.follow:
-                if self.changed_lanes:
-                    self._checkForParking() # Check for parking if the robot passes red
+                if self.lanes > 0:
+                    if self.follow:
+                        self._checkForParking() # Check for parking if the robot passes red
+                    else:
+                        self.robot.drive(-100,0)
+                        wait(1000)
+                        self.robot.turn(-90) #backwards parking
+                        parked = False
+                        while self.ultrasonic.distance() > 100:
+                            self.robot.drive(60,0)
+                            wait(100)
+                        self.hub.speaker.beep()
+                        self.robot.stop()
+                        wait(10000000)
+                    
                 else:
                     # print(self.objectDistance)
                     self._obstacle_check()
@@ -653,7 +678,9 @@ class Vehicle:
                 # print(avgDist)
                 diff = 200 - avgDist
                 # print("dif", diff)
-                self.speed = self.min_speed - (diff/50)
+                if (diff/20)**2 > 400:
+                    print("diff", diff/20)
+                self.speed = self.min_speed - (diff/20)
                 # print("speed", self.speed)
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
