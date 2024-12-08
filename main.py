@@ -508,7 +508,7 @@ class Vehicle:
         """
         self.client = BluetoothMailboxClient()
         self.mbox = TextMailbox('mbox', self.client)
-        SERVER = "ev3devmatiss"
+        SERVER = "ev3dev"
         print("setting up connection")
         self.client.connect(SERVER)
         print("connected")
@@ -518,7 +518,6 @@ class Vehicle:
         print(self.mbox.read())
     
     def _handle_sync_data(self):
-        print(self.mbox)
         if self.follow:
             data = self.mbox.read()
             if data == "blue":
@@ -541,14 +540,10 @@ class Vehicle:
                     self.onLaneSwitch = True
                     self._switch_lane()
                     print(data)
-                if self.onLaneSwitch:
-                    self.onLaneSwitch = False
+                else:
+                    print("lane already switched")
+                
 
-            try:
-                if self.msg_sent:
-                    self._send_data("none")
-            except Exception as e:
-                print("Error Sending Data:", e) 
         return
     
     
