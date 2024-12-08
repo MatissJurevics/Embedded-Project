@@ -464,6 +464,8 @@ class Vehicle:
             if self.frame - self.follower_ignore_white < 100:
                 if self.color[1] == "white":
                     self.color[1] = "black"
+                if self.color[0] == "white":
+                    self.color[0] = "black"
                     
         if not blue:
             self.blue_frames = 0
@@ -647,21 +649,22 @@ class Vehicle:
             self._process_color() # Process the color
             
             try:
+                print(int(self.park))
                 if int(self.park) > 0:
-                        if self.follow:
-                            self._checkForParking() # Check for parking if the robot passes red
-                        elif self.changed_lanes:
-
-                            self.robot.drive(-100,0)
-                            wait(1000)
-                            self.robot.turn(-90) #backwards parking
-                            parked = False
-                            while self.ultrasonic.distance() > 100:
-                                self.robot.drive(60,0)
-                                wait(100)
-                            self.hub.speaker.beep()
-                            self.robot.stop()
-                            wait(10000000)
+                    print("parking")
+                    if self.follow:
+                        self._checkForParking() # Check for parking if the robot passes red
+                    elif self.changed_lanes:
+                        self.robot.drive(-100,0)
+                        wait(1000)
+                        self.robot.turn(-90) #backwards parking
+                        parked = False
+                        while self.ultrasonic.distance() > 100:
+                            self.robot.drive(60,0)
+                            wait(100)
+                        self.hub.speaker.beep()
+                        self.robot.stop()
+                        wait(10000000)
             except:
                 pass
                         
