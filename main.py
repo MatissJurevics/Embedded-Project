@@ -510,7 +510,9 @@ class Vehicle:
         print("setting up connection")
         self.client.connect(SERVER)
         print("connected")
-        
+        self.mbox.send("First message sent")
+        self.mbox.wait()
+        print(self.mbox.read())
     
     def _handle_sync_data(self):
         if self.follow:
