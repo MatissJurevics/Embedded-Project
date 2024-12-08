@@ -283,12 +283,17 @@ class Vehicle:
         if self.convoy:
             acked = False
             while not acked:
-                newval = int(self._receive_data())
-                if newval > self.latestBufLen:
-                    acked = True
-                    break
-                else:
-                    self.mbox.send(msg)
+                # regex for numbers
+                recData = self._receive_data()
+                # test if the data is a number
+                if recData.isnumeric():
+                    newval = int(recData)
+                    if newval > self.latestBufLen:
+                        acked = True
+                        break
+                    else:
+                        self.mbox.send(msg)
+                
                 
             self.msg_sent = True
             
@@ -506,9 +511,6 @@ class Vehicle:
         self.client.connect(SERVER)
         print("connected")
         
-        self.mbox.send("First message sent")
-        self.mbox.wait()
-        print(self.mbox.read())
     
     def _handle_sync_data(self):
         if self.follow:
