@@ -337,7 +337,7 @@ class Vehicle:
         stop the robot for 3 seconds and then drive forward
         """
         self.blue += 1
-        self.mbox_blue.send(self.blue))
+        self.mbox_blue.send(self.blue)
         self.robot.stop()
         wait(3000)
         self.robot.drive(100,0)
