@@ -6,7 +6,7 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile, Font
-from pybricks.messaging import BluetoothMailboxServer, TextMailbox, BluetoothMailboxClient
+from pybricks.messaging import BluetoothMailboxServer, TextMailbox, NumericMailbox, BluetoothMailboxClient
 import json
 import http
 from utils.buffer import Buffer
