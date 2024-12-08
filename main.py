@@ -583,7 +583,7 @@ class Vehicle:
                 if not self.onLaneSwitch:
                     self.onLaneSwitch = True
                     self._switch_lane()
-                    self.lanes = self.mbox_lanes.read()
+                    self.lanes = int(self.mbox_lanes.read())
             
             
                 
