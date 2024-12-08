@@ -575,7 +575,8 @@ class Vehicle:
                 if not self.onYellow:
                     self.onYellow = True
                     self._handle_yellow()
-            print("lanes", self.lanes, self.mbox_lanes.read())
+            # print("lanes", self.lanes, self.mbox_lanes.read())
+            
             elif int(self.mbox_lanes.read()) > self.lanes:
                 self.hub.speaker.beep()
                 print("Lane Switching ")
