@@ -517,8 +517,7 @@ class Vehicle:
         if self.follow:
             data = self.mbox.read()
             if data == "blue":
-                self.robot.stop()
-                wait(3000)
+                self._handle_blue()
             elif data == "yellow":
                 self._handle_yellow()
             elif data == "switch":
@@ -565,11 +564,19 @@ class Vehicle:
                 self._print_data()
                 self._print_data_console()
             if self.follow:
+                self.detectObstacle()
                 print(self.speed, self.objectDistance)
-                avgDist = self.buffer.average()
-                diff = 300 - avgDist
-                # self.speed = self.min_speed + (diff/10)
-                # print("speed", self.speed)
+                
+                avgDist = 0
+                for val in self.buffer.buffer:
+                    if val < 2000:
+                        avgDist += val/len(self.buffer.buffer)
+                print("buffer", self.buffer.buffer)
+                print(avgDist)
+                diff = 200 - avgDist
+                print("dif", diff)
+                self.speed = self.min_speed - (diff/50)
+                print("speed", self.speed)
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
