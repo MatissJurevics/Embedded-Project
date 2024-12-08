@@ -661,11 +661,9 @@ class Vehicle:
                         self.robot.stop()
                         wait(10000000)
                         
-            if not self.follow:
-                    
-                else:
-                    # print(self.objectDistance)
-                    self._obstacle_check()
+            if not self.follow:    
+                self._obstacle_check()
+                
             if self.frame % 10 == 0: # Print data every 10 frames
                 self._print_data()
                 self._print_data_console()
