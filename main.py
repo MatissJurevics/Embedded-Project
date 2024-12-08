@@ -76,6 +76,8 @@ class Vehicle:
         self.obstacle_lower_threshold = 10.0
         self.objectAvoidThreashold = 250
         self.skip_turn_logic = False
+        self.onBlue = False
+        self.onLaneSwitch = False
         
         
     
@@ -198,7 +200,7 @@ class Vehicle:
     def detectObstacle(self):
         dist = self.ultrasonic.distance()
         self.buffer.append(dist)
-        print(self.buffer.buffer)
+        # print(self.buffer.buffer)
         self.objectDistance = dist
         
     def _print_data(self):
@@ -505,7 +507,7 @@ class Vehicle:
         """
         self.client = BluetoothMailboxClient()
         self.mbox = TextMailbox('mbox', self.client)
-        SERVER = "ev3dev"
+        SERVER = "ev3devmatiss"
         print("setting up connection")
         self.client.connect(SERVER)
         print("connected")
@@ -518,14 +520,29 @@ class Vehicle:
         if self.follow:
             data = self.mbox.read()
             if data == "blue":
-                self._handle_blue()
+                print("Stopping: Doing Blue Logic")
+                if not self.onBlue:
+                    self.onBlue = True
+                    self._handle_blue()
+
+                    
             elif data == "yellow":
                 self._handle_yellow()
+
             elif data == "switch":
                 self.hub.speaker.beep()
-                self._switch_lane()
-            if msg_sent:
-                self._send_data("none")
+                print("Lane Switching ")
+                if not self.onLaneSwitch:
+                    self.onLaneSwitch = True
+                    self._switch_lane()
+                    self.onLaneSwitch = False
+                    print(data)
+
+            try:
+                if self.msg_sent:
+                    self._send_data("none")
+            except Exception as e:
+                print("Error Sending Data:", e) 
         return
     
     
@@ -561,7 +578,7 @@ class Vehicle:
                 if self.changed_lanes:
                     self._checkForParking() # Check for parking if the robot passes red
                 else:
-                    print(self.objectDistance)
+                    # print(self.objectDistance)
                     self._obstacle_check()
             if self.frame % 10 == 0: # Print data every 10 frames
                 self._print_data()
@@ -574,12 +591,12 @@ class Vehicle:
                 for val in self.buffer.buffer:
                     if val < 2000:
                         avgDist += val/len(self.buffer.buffer)
-                print("buffer", self.buffer.buffer)
-                print(avgDist)
+                # print("buffer", self.buffer.buffer)
+                # print(avgDist)
                 diff = 200 - avgDist
-                print("dif", diff)
+                # print("dif", diff)
                 self.speed = self.min_speed - (diff/50)
-                print("speed", self.speed)
+                # print("speed", self.speed)
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
  
