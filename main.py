@@ -510,15 +510,13 @@ class Vehicle:
     def _checkForParking(self):
         if self.infrared.distance() < 50:
             self.mbox_lanes.send(self.lanes)
-            self.robot.drive(100,0)
+            self.robot.drive(100, 0)
             wait(1000)
-            self.robot.turn(-90) #backwards parking
-            parked = False
-            while self.ultrasonic.distance() > 100:
-                self.robot.drive(-60,0)
-                wait(100)
-            self.hub.speaker.beep()
+            self.robot.turn(90)
+            self.robot.drive(-80, 0)
+            wait(2000)
             self.robot.stop()
+            self.hub.speaker.beep()
             wait(10000000)
     
    
@@ -669,6 +667,8 @@ class Vehicle:
                         
                         self.robot.stop()
                         self.hub.speaker.beep()
+                        wait(10000000)
+                        
             except:
                 pass
                         
