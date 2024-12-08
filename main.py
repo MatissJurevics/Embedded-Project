@@ -286,7 +286,7 @@ class Vehicle:
                 # regex for numbers
                 recData = self._receive_data()
                 # test if the data is a number
-                if recData.isnumeric():
+                if recData.isdigit():
                     newval = int(recData)
                     if newval > self.latestBufLen:
                         acked = True
