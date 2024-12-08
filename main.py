@@ -316,7 +316,7 @@ class Vehicle:
                 else:
                     self.eventBus.append(data)
                     print(self.eventBus)
-                    self._send_data(len(self.eventBus))
+                    self.mbox.send(len(self.eventBus))
                     print(len(self.eventBus))
                     
                     return data
