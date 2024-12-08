@@ -281,6 +281,7 @@ class Vehicle:
         Send data to the client
         """
         if self.convoy:
+            self.mbox.send(msg)
             acked = False
             while not acked:
                 # regex for numbers
@@ -306,6 +307,7 @@ class Vehicle:
         Receive data from the server
         """
         if self.convoy:
+            
             data = self.mbox.read()
             print("data", data)
             try:
@@ -594,8 +596,9 @@ class Vehicle:
                 self._send_data("start")
                 print("Sent start")
             else:
-                self._receive_data()
-                print(self.eventBus)
+                while len(self.eventBus) < 2:
+                    self._receive_data()
+                    print(self.eventBus)
         
         return
         while True:
