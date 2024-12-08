@@ -456,6 +456,7 @@ class Vehicle:
             self._handle_yellow()
         elif blue and not self.follow:
             self._handle_blue()
+            self.mbox.send("blue")
         elif self.skip_turn_logic:
             return
         elif light and not self.follow:
@@ -490,9 +491,9 @@ class Vehicle:
 
     def _checkForParking(self):
         if self.infrared.distance() < 50:
-            self.robot.drive(100,0)
+            self.robot.drive(-100,0)
             wait(1000)
-            self.robot.turn(-90)
+            self.robot.turn(90) #backwards parking
             parked = False
             while self.ultrasonic.distance() > 100:
                 self.robot.drive(60,0)
@@ -584,6 +585,10 @@ class Vehicle:
 
         return
     
+    def _start_parking(self):
+        print("Starting reverse parking...")
+        self.detectObstacleforParking()
+    
     
     def run(self):
         """
@@ -598,7 +603,6 @@ class Vehicle:
         """
         The main driving function
         """
-        self.loadCalibratedData()
         self.hub.speaker.beep()
         if self.convoy:
             if self.follow:
@@ -642,7 +646,13 @@ class Vehicle:
                 # print("speed", self.speed)
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
+    
+  
+    
+
+
  
+
 
 
 car = Vehicle(sensorL, sensorR, robot,motorL, motorR, ev3, ultrasonic, ir)
