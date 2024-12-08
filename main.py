@@ -540,10 +540,15 @@ class Vehicle:
         self.client.connect(SERVER)
         print("connected")
         self.mbox.send("First message sent")
+        print("first message sent, waiting...")
         self.mbox_lanes.wait()
+        print("received lanes...")
         self.mbox_blue.wait()
+        print("received blue...")
         self.mbox_yellow.wait()
+        print("received yellow...")
         self.mbox_park.wait()
+        print("received park...")
         self.mbox.wait()
         print(self.mbox.read())
     
@@ -610,8 +615,10 @@ class Vehicle:
         
         while True:
             self.frame += 1
+            print("before sync")
             if self.convoy:        
                 self._handle_sync_data()
+            print("blue", self.blue, "yellow", self.yellow, "lanes", self.lanes)
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
             self._process_color() # Process the color
