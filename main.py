@@ -391,6 +391,8 @@ class Vehicle:
             self.robot.drive(100,0)
             wait(100)
         self.robot.turn(-rotate)
+        if self.follow:
+            wait(500)
         self.side_weight.reverse()
         
     
