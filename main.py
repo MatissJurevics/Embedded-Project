@@ -316,7 +316,9 @@ class Vehicle:
                 else:
                     self.eventBus.append(data)
                     print(self.eventBus)
-                    self.mbox.send(len(self.eventBus))
+                    for i in range(5):
+                        self.mbox.send(len(self.eventBus))
+                        wait(10)
                     print(len(self.eventBus))
                     
                     return data
