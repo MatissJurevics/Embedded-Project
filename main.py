@@ -447,7 +447,7 @@ class Vehicle:
         red = (self.color[0] == "red" and self.color[1] == "red")
         yellow = (self.color[0] == "yellow" or self.color[1] == "yellow")
         blue = (self.color[0] == "blue" and self.color[1] == "blue")
-        
+        print(self.color[0])
         if not blue:
             self.blue_frames = 0
         if red and not self.follow:
