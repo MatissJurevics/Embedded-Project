@@ -390,6 +390,8 @@ class Vehicle:
         handle the logic for when the robot drives over a
         light color (white or green)
         """
+        if self.convoy and not self.follow:
+            self._send_data("none")
         if not self.at_crossing:
             if self.color[0] == "green" or self.color[0] == "white":
                 if self.color[0] == "green":
@@ -454,6 +456,7 @@ class Vehicle:
         #     return
         elif light:
             self._handle_light()
+        
             
         
     
