@@ -517,6 +517,7 @@ class Vehicle:
         print(self.mbox.read())
     
     def _handle_sync_data(self):
+        print(self.mbox)
         if self.follow:
             data = self.mbox.read()
             if data == "blue":
@@ -535,8 +536,9 @@ class Vehicle:
                 if not self.onLaneSwitch:
                     self.onLaneSwitch = True
                     self._switch_lane()
-                    self.onLaneSwitch = False
                     print(data)
+                if self.onLaneSwitch:
+                    self.onLaneSwitch = False
 
             try:
                 if self.msg_sent:
