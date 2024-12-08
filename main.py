@@ -197,7 +197,6 @@ class Vehicle:
         for i in range(2):
             closestDistance[i] = round(closestDistance[i], 2)
         returnVal = [closestColor[0], closestColor[1], closestDistance]
-        print(returnVal)
         self.color = returnVal
 
             
@@ -284,7 +283,7 @@ class Vehicle:
         if self.convoy:
             acked = False
             while not acked:
-                newval = self._receive_data()
+                newval = int(self._receive_data())
                 if newval > self.latestBufLen:
                     acked = True
                     break
@@ -419,7 +418,6 @@ class Vehicle:
         red = (self.color[0] == "red" and self.color[1] == "red")
         yellow = (self.color[0] == "yellow" or self.color[1] == "yellow")
         blue = (self.color[0] == "blue" and self.color[1] == "blue")
-        print(self.color[0])
         if not blue:
             self.blue_frames = 0
         if red and not self.follow:
