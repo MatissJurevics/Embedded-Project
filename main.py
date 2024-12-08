@@ -303,7 +303,17 @@ class Vehicle:
         """
         if self.convoy:
             data = self.mbox.read()
-            return data
+            try:
+                if data == self.eventBus[-1]:
+                    return "none"
+                else:
+                    print(self.eventBus)
+                    self.eventBus.append(data)
+                    self._send_data(len(self.eventBus))
+                    return data
+            except:
+                self.eventBus.append(data)
+                return data
         return
         
     
@@ -517,14 +527,7 @@ class Vehicle:
     def _handle_sync_data(self):
         if self.follow:
             data = self._receive_data()
-            try:
-                if data == self.eventBus[-1]:
-                    return
-                else:
-                    self.eventBus.append(data)
-                    self._send_data(len(self.eventBus))
-            except:
-                self.eventBus.append(data)
+            
             
             if self.eventBus[-1] == "blue":
                 print("Stopping: Doing Blue Logic")
