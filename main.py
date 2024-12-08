@@ -560,7 +560,6 @@ class Vehicle:
     def _handle_sync_data(self):
         if self.follow:
             data = self._receive_data()
-            print("eventBus", self.eventBus)
             
             if int(self.mbox_blue.read()) > 0 and self.blue < 1000:
                 self.blue += 100000
@@ -576,13 +575,14 @@ class Vehicle:
                 if not self.onYellow:
                     self.onYellow = True
                     self._handle_yellow()
-
+            print("lanes", self.lanes, self.mbox_lanes.read())
             elif int(self.mbox_lanes.read()) > self.lanes:
                 self.hub.speaker.beep()
                 print("Lane Switching ")
                 if not self.onLaneSwitch:
                     self.onLaneSwitch = True
                     self._switch_lane()
+                    self.onLaneSwitch = False
                     print('lanes', self.lanes, self.mbox_lanes.read())
                     self.lanes = int(self.mbox_lanes.read())
             
