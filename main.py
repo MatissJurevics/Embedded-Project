@@ -604,6 +604,9 @@ class Vehicle:
                     print('lanes', self.lanes, self.mbox_lanes.read())
                     self.lanes = int(self.mbox_lanes.read())
             
+            elif int(self.mbox_park.read()) > 0 and self.park < 1000:
+                self.park += 100000
+                print("Parking")
             
                 
 
