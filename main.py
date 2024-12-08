@@ -646,21 +646,24 @@ class Vehicle:
             # self.detectObstacleForParking()
             self._process_color() # Process the color
             
-            if self.park > 0:
-                    if self.follow:
-                        self._checkForParking() # Check for parking if the robot passes red
-                    elif self.changed_lanes:
+            try:
+                if int(self.park) > 0:
+                        if self.follow:
+                            self._checkForParking() # Check for parking if the robot passes red
+                        elif self.changed_lanes:
 
-                        self.robot.drive(-100,0)
-                        wait(1000)
-                        self.robot.turn(-90) #backwards parking
-                        parked = False
-                        while self.ultrasonic.distance() > 100:
-                            self.robot.drive(60,0)
-                            wait(100)
-                        self.hub.speaker.beep()
-                        self.robot.stop()
-                        wait(10000000)
+                            self.robot.drive(-100,0)
+                            wait(1000)
+                            self.robot.turn(-90) #backwards parking
+                            parked = False
+                            while self.ultrasonic.distance() > 100:
+                                self.robot.drive(60,0)
+                                wait(100)
+                            self.hub.speaker.beep()
+                            self.robot.stop()
+                            wait(10000000)
+            except:
+                pass
                         
             if not self.follow:    
                 self._obstacle_check()
