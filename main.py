@@ -369,6 +369,7 @@ class Vehicle:
             # exit()
         else:
             self.changed_lanes = True # called changed lanes but refers to crossing red
+            self.park += 10
             # self._switch_lane()          
     
     def _switch_lane(self):
@@ -509,12 +510,12 @@ class Vehicle:
     def _checkForParking(self):
         if self.infrared.distance() < 50:
             self.mbox_lanes.send(self.lanes)
-            self.robot.drive(-100,0)
+            self.robot.drive(100,0)
             wait(1000)
             self.robot.turn(-90) #backwards parking
             parked = False
             while self.ultrasonic.distance() > 100:
-                self.robot.drive(60,0)
+                self.robot.drive(-60,0)
                 wait(100)
             self.hub.speaker.beep()
             self.robot.stop()
@@ -658,12 +659,12 @@ class Vehicle:
                     if self.follow:
                         self._checkForParking() # Check for parking if the robot passes red
                     elif self.changed_lanes:
-                        self.robot.drive(-100,0)
+                        self.robot.drive(100,0)
                         wait(1000)
                         self.robot.turn(-90) #backwards parking
                         parked = False
                         while self.ultrasonic.distance() > 100:
-                            self.robot.drive(60,0)
+                            self.robot.drive(-60,0)
                             wait(100)
                         self.hub.speaker.beep()
                         self.robot.stop()
