@@ -363,6 +363,7 @@ class Vehicle:
         if self.changed_lanes:
             print("changed lanes")
             self.hub.speaker.beep()
+            self.mbox_park.send('1')
             # self.robot.stop()
             # self.hub.speaker.beep()
             # exit()
@@ -467,7 +468,7 @@ class Vehicle:
         if not blue:
             self.blue_frames = 0
         if red and not self.follow:
-            self.mbox_park.send('1')
+            
             self._handle_red()
         elif yellow and not self.follow:
             self._handle_yellow()
