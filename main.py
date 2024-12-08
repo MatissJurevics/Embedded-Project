@@ -285,7 +285,7 @@ class Vehicle:
         if self.convoy:
             acked = False
             while not acked:
-                newval = self.mbox.read()
+                newval = self._receive_data()
                 if newval > self.latestBufLen:
                     acked = True
                     break
@@ -459,10 +459,6 @@ class Vehicle:
             self.mbox.send("blue")
         elif self.skip_turn_logic:
             return
-        elif light and not self.follow:
-            self._handle_light() 
-        elif not self.follow:
-            continue
         elif light:
             self._handle_light()
             
@@ -612,12 +608,7 @@ class Vehicle:
 
         while True:
             self.frame += 1
-            if self.convoy:
-                if not self.follow:
-                    if self.unaknowlaged:
-                        self.
-                        self._send_data(self.unacknowledgedMsg)
-                        
+            if self.convoy:        
                 self._handle_sync_data()
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
