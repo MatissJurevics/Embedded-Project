@@ -543,14 +543,14 @@ class Vehicle:
     
     def _handle_sync_data(self):
         if self.follow:
-            data = self.mbox.read()
+            data = self._receive_data()
             try:
                 if data == self.eventBus[-1]:
                     return
                 else:
                     self.eventBus.append(data)
-                    self.mbox.send(len(self.eventBus))
-                    print(self.eventBus)
+                    self._send_data(len(self.eventBus))
+                    print(self.eventBus, len(self.eventBus), len(self.latestBufLen))
             except:
                 self.eventBus.append(data)
                 print(self.eventBus)
@@ -609,7 +609,9 @@ class Vehicle:
         while True:
             self.frame += 1
             if self.convoy:        
+                print("before sync")
                 self._handle_sync_data()
+                print("after sync")
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
             self._process_color() # Process the color
