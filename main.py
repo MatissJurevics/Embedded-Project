@@ -591,16 +591,7 @@ class Vehicle:
                 self.leader()
         # ---------------------------------------------
         
-        if self.convoy:
-            if self.follow:
-                self._send_data("start")
-                print("Sent start")
-            else:
-                while len(self.eventBus) < 2:
-                    self._receive_data()
-                    print(self.eventBus)
         
-        return
         while True:
             self.frame += 1
             if self.convoy:        
