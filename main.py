@@ -197,6 +197,7 @@ class Vehicle:
         for i in range(2):
             closestDistance[i] = round(closestDistance[i], 2)
         returnVal = [closestColor[0], closestColor[1], closestDistance]
+        print(returnVal)
         self.color = returnVal
 
             
@@ -242,9 +243,7 @@ class Vehicle:
                     self.screen.draw_text(0, 10 + (idx * 20), "> " + val)
                 else:
                     self.screen.draw_text(0, 10 + (idx * 20), val)
-            print(buttons, selected)
             if buttons:
-                print("button pressed")
                 if buttons[0] == Button.UP:
                     selected -= 1
                     print("up")
@@ -362,33 +361,6 @@ class Vehicle:
         self.robot.turn(-rotate)
         self.side_weight.reverse()
         
-        # if left_lane:
-        #     # self.robot.turn(-90)
-        #     self.robot.drive(150,-80)
-        #     wait(700)
-        #     self.robot.stop()
-        #     wait(100)
-        #     # self.robot.turn(90)
-        #     self.robot.drive(150,80)
-        #     wait(700)
-        #     self.robot.stop()
-        #     wait(100)
-        #     self._getClosestColor()
-        #     if self.color[0] == "green" and self.color[1] == "green":
-        #         self.robot.turn(30)
-        #     self.side_weight = [0,1000000]
-        # else:
-        #     # self.robot.turn(90)
-        #     self.robot.drive(150,80)
-        #     wait(500)
-        #     # self.robot.turn(90)
-        #     self.robot.drive(150,-45)
-        #     wait(400)
-        #     self.robot.stop()
-        #     wait(100)
-        #     if self.color[0] == "green" and self.color[1] == "green":
-        #         self.robot.turn(-30)
-            # self.side_weight = [1000000,0]
     
     def _handle_light(self):
         """
@@ -456,9 +428,8 @@ class Vehicle:
             self._handle_yellow()
         elif blue and not self.follow:
             self._handle_blue()
-            self.mbox.send("blue")
-        elif self.skip_turn_logic:
-            return
+        # elif self.skip_turn_logic:
+        #     return
         elif light:
             self._handle_light()
             
@@ -597,6 +568,7 @@ class Vehicle:
         """
         The main driving function
         """
+        self.loadCalibratedData()
         self.hub.speaker.beep()
         if self.convoy:
             if self.follow:
@@ -608,12 +580,10 @@ class Vehicle:
             self.frame += 1
             if self.convoy:        
                 self._handle_sync_data()
-            print("before color")
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
-            print("before process color")
             self._process_color() # Process the color
-            print("after color")
+            
             if not self.follow:
                 if self.changed_lanes:
                     self._checkForParking() # Check for parking if the robot passes red
