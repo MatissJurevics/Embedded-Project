@@ -284,7 +284,8 @@ class Vehicle:
             acked = False
             while not acked:
                 # regex for numbers
-                recData = self._receive_data()
+                recData = self.mbox.read()
+                
                 # test if the data is a number
                 if recData.isdigit():
                     newval = int(recData)
@@ -293,6 +294,7 @@ class Vehicle:
                         break
                     else:
                         self.mbox.send(msg)
+                self.mbox.send(msg)
                 
                 
             self.msg_sent = True
@@ -527,7 +529,7 @@ class Vehicle:
     def _handle_sync_data(self):
         if self.follow:
             data = self._receive_data()
-            
+            print("eventBus", self.eventBus)
             
             if self.eventBus[-1] == "blue":
                 print("Stopping: Doing Blue Logic")
@@ -580,7 +582,17 @@ class Vehicle:
                 self.follower()
             else:
                 self.leader()
-
+        # ---------------------------------------------
+        
+        if self.convoy:
+            if self.follow:
+                self._send_data("start")
+                
+            else:
+                self._receive_data()
+                print(self.eventBus)
+        
+        return
         while True:
             self.frame += 1
             if self.convoy:        
