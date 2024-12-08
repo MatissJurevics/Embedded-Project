@@ -369,7 +369,6 @@ class Vehicle:
             # exit()
         else:
             self.changed_lanes = True # called changed lanes but refers to crossing red
-            self.park += 10
             # self._switch_lane()          
     
     def _switch_lane(self):
@@ -650,6 +649,8 @@ class Vehicle:
             # self.detectObstacleForParking()
             self._process_color() # Process the color
             
+            if self.changed_lanes:
+                self.park = int(self.mbox_park.read())
             try:
                 print(int(self.park))
                 if int(self.park) > 0:
