@@ -81,6 +81,10 @@ class Vehicle:
         self.onLaneSwitch = False
         self.eventBus = []
         self.latestBufLen = 0
+        self.lanes = 0
+        self.blue = 0
+        self.yellow = 0
+        self.park = 0
         
         
     
@@ -332,7 +336,8 @@ class Vehicle:
         """
         stop the robot for 3 seconds and then drive forward
         """
-        self._send_data("blue")
+        self.blue += 1
+        self.mbox_blue.send(self.blue))
         self.robot.stop()
         wait(3000)
         self.robot.drive(100,0)
@@ -343,7 +348,8 @@ class Vehicle:
         """
         move the robot slowly for 2.3 seconds
         """
-        self._send_data("yellow")
+        self.yellow += 1
+        self.mbox_yellow.send(self.yellow)
         self.at_crossing = True
         self.robot.drive(75,0)
         wait(2300)
@@ -370,7 +376,8 @@ class Vehicle:
         
         if not self.follow and self.convoy:
             self.hub.speaker.beep()
-            self._send_data("switch")
+            self.lanes += 1
+            self.mbox_lanes.send(self.lanes)
             
         left_lane = (self.side_weight[0] > self.side_weight[1]) # True if left lane is heavier
         rotate = -90 if left_lane else 90
@@ -496,22 +503,7 @@ class Vehicle:
             self.robot.stop()
             wait(10000000)
     
-            
-    # DEPRECATED
-    # def parallel_park(self):
-    #     #changed
-    #     forward_distance = self.infrared.distance() / 2  
-    #     self.motorL.run_angle(10, forward_distance, Stop.BRAKE, False)
-    #     self.motorR.run_angle(10, forward_distance, Stop.BRAKE, True)
-    #     #backwards
-    #     self.motorL.run_angle(-20, 230, Stop.BRAKE, False) 
-    #     self.motorR.run_angle(Stop.Break)  
-    #     # 
-    #     self.motorL.run_angle(-20, 360, Stop.BRAKE, False)
-    #     self.motorR.run_angle(-20, 360, Stop.BRAKE, True)
-    #     # Straighten the robot
-    #     self.motorL.run_angle(20, 115, Stop.BRAKE, False)
-    #     self.motorR.run_angle(-20, 115, Stop.BRAKE, True)
+   
     
     def leader(self):
         """
@@ -519,6 +511,10 @@ class Vehicle:
         """
         self.server = BluetoothMailboxServer()
         self.mbox = TextMailbox('mbox', self.server)
+        self.mbox_lanes = numericMailbox("lanes", self.server)
+        self.mbox_blue = numericMailbox("blue", self.server)
+        self.mbox_yellow = numericMailbox("yellow", self.server)
+        self.mbox_park = numericMailbox("park", self.server)
         self.server.wait_for_connection()
         self.mbox.wait()
         print(self.mbox.read())
@@ -530,6 +526,10 @@ class Vehicle:
         """
         self.client = BluetoothMailboxClient()
         self.mbox = TextMailbox('mbox', self.client)
+        self.mbox_lanes = numericMailbox("lanes", self.client)
+        self.mbox_blue = numericMailbox("blue", self.client)
+        self.mbox_yellow = numericMailbox("yellow", self.client)
+        self.mbox_park = numericMailbox("park", self.client)
         SERVER = "ev3dev"
         print("setting up connection")
         self.client.connect(SERVER)
@@ -543,28 +543,30 @@ class Vehicle:
             data = self._receive_data()
             print("eventBus", self.eventBus)
             
-            if self.eventBus[-1] == "blue":
+            if self.mbox_blue.read() > 0:
+                self.blue = self.mbox_blue.read()
                 print("Stopping: Doing Blue Logic")
                 if not self.onBlue:
                     self.onBlue = True
                     self._handle_blue()
 
                     
-            elif self.eventBus[-1] == "yellow":
+            elif self.mbox_yellow.read() > 0:
+                self.yellow = self.mbox_yellow.read()
                 print("Doing Yellow Logic")
                 if not self.onYellow:
                     self.onYellow = True
                     self._handle_yellow()
 
-            elif self.eventBus[-1] == "switch":
+            elif self.mbox_lanes.read() > self.lanes:
+                self.lanes = self.mbox_lanes.read()
                 self.hub.speaker.beep()
                 print("Lane Switching ")
                 if not self.onLaneSwitch:
                     self.onLaneSwitch = True
                     self._switch_lane()
             
-            elif self.eventBus[-1] == "none":
-                self.onLaneSwitch = False
+            
                 
 
         return
