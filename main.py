@@ -79,6 +79,8 @@ class Vehicle:
         self.onBlue = False
         self.onYellow = False
         self.onLaneSwitch = False
+        self.eventBus = []
+        self.latestBufLen = 0
         
         
     
@@ -281,8 +283,25 @@ class Vehicle:
         Send data to the client
         """
         if self.convoy:
-            self.mbox.send(msg)
+            acked = False
+            while not acked:
+                newval = self.mbox.read()
+                if newval > self.latestBufLen:
+                    acked = True
+                    break
+                else:
+                    self.mbox.send(msg)
+                
             self.msg_sent = True
+            
+    def _receive_data(self):
+        """
+        Receive data from the server
+        """
+        if self.convoy:
+            data = self.mbox.read()
+            return data
+        return
         
     
     def _handle_blue(self):
@@ -324,7 +343,9 @@ class Vehicle:
         """
         Function for lane switching
         """
+        
         if not self.follow and self.convoy:
+            self.hub.speaker.beep()
             self._send_data("switch")
             
         left_lane = (self.side_weight[0] > self.side_weight[1]) # True if left lane is heavier
@@ -437,8 +458,14 @@ class Vehicle:
             self._handle_blue()
         elif self.skip_turn_logic:
             return
-        elif light:
+        elif light and not self.follow:
             self._handle_light() 
+        elif not self.follow:
+            continue
+        elif light:
+            self._handle_light()
+            
+        
     
     def detectObstacleForParking(self):
         distance = self.infrared.distance()
@@ -520,28 +547,39 @@ class Vehicle:
     def _handle_sync_data(self):
         if self.follow:
             data = self.mbox.read()
-            if data == "blue":
+            try:
+                if data == self.eventBus[-1]:
+                    return
+                else:
+                    self.eventBus.append(data)
+                    self.mbox.send(len(self.eventBus))
+                    print(self.eventBus)
+            except:
+                self.eventBus.append(data)
+                print(self.eventBus)
+            
+            if self.eventBus[-1] == "blue":
                 print("Stopping: Doing Blue Logic")
                 if not self.onBlue:
                     self.onBlue = True
                     self._handle_blue()
 
                     
-            elif data == "yellow":
+            elif self.eventBus[-1] == "yellow":
                 print("Doing Yellow Logic")
                 if not self.onYellow:
                     self.onYellow = True
                     self._handle_yellow()
 
-            elif data == "switch":
+            elif self.eventBus[-1] == "switch":
                 self.hub.speaker.beep()
                 print("Lane Switching ")
                 if not self.onLaneSwitch:
                     self.onLaneSwitch = True
                     self._switch_lane()
-                    print(data)
-                else:
-                    print("lane already switched")
+            
+            elif self.eventBus[-1] == "none":
+                self.onLaneSwitch = False
                 
 
         return
@@ -571,6 +609,11 @@ class Vehicle:
         while True:
             self.frame += 1
             if self.convoy:
+                if not self.follow:
+                    if self.unaknowlaged:
+                        self.
+                        self._send_data(self.unacknowledgedMsg)
+                        
                 self._handle_sync_data()
             self._getClosestColor() # Get the closest color
             # self.detectObstacleForParking()
@@ -586,7 +629,6 @@ class Vehicle:
                 self._print_data_console()
             if self.follow:
                 self.detectObstacle()
-                print(self.speed, self.objectDistance)
                 
                 avgDist = 0
                 for val in self.buffer.buffer:
