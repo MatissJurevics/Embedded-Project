@@ -517,15 +517,16 @@ class Vehicle:
                 self.robot.stop()
                 self.hub.speaker.beep()
                 wait(10000000)
-        elif self.mbox_park.read() == "1":
-            self.robot.drive(100, 0)
-            wait(1000)
-            self.robot.turn(90)
-            self.robot.drive(-80, 0)
-            wait(2000)
-            self.robot.stop()
-            self.hub.speaker.beep()
-            wait(10000000)
+        else:
+            if self.infrared.distance() < 50:
+                self.robot.drive(100, 0)
+                wait(5000)
+                self.robot.turn(90)
+                self.robot.drive(-80, 0)
+                wait(2000)
+                self.robot.stop()
+                self.hub.speaker.beep()
+                wait(10000000)
     
    
     
@@ -662,10 +663,8 @@ class Vehicle:
             
             self.park = int(self.mbox_park.read())
             
-            if self.changed_lanes and not self.follow:
-                self.mbox_park.send("1")
-            if self.park > 0:
-                self._checkForParking()
+            if self.changed_lanes or self.park > 0:
+                self.checkForParking()
             
                 
             
