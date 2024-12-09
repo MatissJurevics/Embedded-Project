@@ -391,7 +391,7 @@ class Vehicle:
             wait(100)
         self.robot.turn(-rotate)
         if self.follow:
-            wait(1500)
+            wait(1750)
         self.side_weight.reverse()
         
     
@@ -508,7 +508,7 @@ class Vehicle:
             if self.infrared.distance() < 50:
                 self.mbox_lanes.send("1")
                 self.robot.drive(100, 0)
-                wait(1000)
+                wait(2000)
                 self.robot.turn(90)
                 self.robot.drive(-80, 0)
                 wait(2000)
@@ -687,7 +687,7 @@ class Vehicle:
                 # print("dif", diff)
                 if (diff/20)**2 > 400:
                     print("diff", diff/20)
-                self.speed = self.min_speed - (diff/20)
+                self.speed = self.min_speed - (diff/15)
                 # print("speed", self.speed)
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
