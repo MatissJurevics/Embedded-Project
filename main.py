@@ -363,7 +363,6 @@ class Vehicle:
         if self.changed_lanes:
             print("changed lanes")
             self.hub.speaker.beep()
-            self.mbox_park.send('1')
             # self.robot.stop()
             # self.hub.speaker.beep()
             # exit()
@@ -507,8 +506,18 @@ class Vehicle:
                 self.continue_driving = False  # Exit the loop after parking
 
     def _checkForParking(self):
-        if self.infrared.distance() < 50:
-            self.mbox_lanes.send(self.lanes)
+        if self.follow:
+            if self.infrared.distance() < 50:
+                self.mbox_lanes.send("1")
+                self.robot.drive(100, 0)
+                wait(1000)
+                self.robot.turn(90)
+                self.robot.drive(-80, 0)
+                wait(2000)
+                self.robot.stop()
+                self.hub.speaker.beep()
+                wait(10000000)
+        elif self.mbox_park.read() == "1":
             self.robot.drive(100, 0)
             wait(1000)
             self.robot.turn(90)
@@ -605,6 +614,8 @@ class Vehicle:
             elif int(self.mbox_park.read()) > 0 and self.park < 1000:
                 self.park += 100000
                 print("Parking")
+                if self.follow:
+                    self._checkForParking()
             
                 
 
@@ -649,29 +660,15 @@ class Vehicle:
             # self.detectObstacleForParking()
             self._process_color() # Process the color
             
-            if self.changed_lanes:
-                self.park = int(self.mbox_park.read())
-            try:
-                print(int(self.park))
-                if int(self.park) > 0:
-                    print("parking")
-                    if self.follow:
-                        self._checkForParking() # Check for parking if the robot passes red
-                    elif self.changed_lanes:
-                        self.robot.drive(100, 0)
-                        wait(1000)
-                        
-                        self.robot.turn(90)
-                        
-                        self.robot.drive(-80, 0)
-                        wait(2000)
-                        
-                        self.robot.stop()
-                        self.hub.speaker.beep()
-                        wait(10000000)
-                        
-            except:
-                pass
+            self.park = int(self.mbox_park.read())
+            
+            if self.changed_lanes and not self.follow:
+                self.mbox_park.send("1")
+            if self.park > 0:
+                self._checkForParking()
+            
+                
+            
                         
             if not self.follow:    
                 self._obstacle_check()
