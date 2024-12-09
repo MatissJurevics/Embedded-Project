@@ -363,9 +363,7 @@ class Vehicle:
         if self.changed_lanes:
             print("changed lanes")
             self.hub.speaker.beep()
-            # self.robot.stop()
-            # self.hub.speaker.beep()
-            # exit()
+            
         else:
             self.changed_lanes = True # called changed lanes but refers to crossing red
             # self._switch_lane()          
@@ -468,7 +466,7 @@ class Vehicle:
                     
         if not blue:
             self.blue_frames = 0
-        if red and not self.follow:
+        if red:
             
             self._handle_red()
         elif yellow and not self.follow:
@@ -663,8 +661,9 @@ class Vehicle:
             
             self.park = int(self.mbox_park.read())
             
-            if self.changed_lanes or self.park > 0:
-                self.checkForParking()
+            if self.changed_lanes :
+                print("checking for parking")
+                self._checkForParking()
             
                 
             
