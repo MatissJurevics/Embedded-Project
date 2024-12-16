@@ -74,7 +74,7 @@ class Vehicle:
         self.obstacle_count = 0
         self.obstacle_higher_threshold = 50.8
         self.obstacle_lower_threshold = 10.0
-        self.objectAvoidThreashold = 250
+        self.objectAvoidThreashold = 200
         self.skip_turn_logic = False
         self.onBlue = False
         self.onYellow = False
@@ -562,7 +562,7 @@ class Vehicle:
         self.mbox_blue = TextMailbox("blue", self.client)
         self.mbox_yellow = TextMailbox("yellow", self.client)
         self.mbox_park = TextMailbox("park", self.client)
-        SERVER = "ev3dev"
+        SERVER = "ev3devmatiss"
         print("setting up connection")
         self.client.connect(SERVER)
         print("connected")
@@ -687,7 +687,7 @@ class Vehicle:
                 # print("dif", diff)
                 if (diff/20)**2 > 400:
                     print("diff", diff/20)
-                self.speed = self.min_speed - (diff/15)
+                self.speed = self.min_speed - (diff/20)
                 # print("speed", self.speed)
             self.robot.drive(self.speed, self.turning_angle)
             self.turning_angle = 0
